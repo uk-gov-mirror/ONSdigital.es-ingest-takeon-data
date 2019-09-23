@@ -22,7 +22,7 @@ functions:
     tags:
       app: results
     environment:
-      bucket_name: takeon-bucket
+      bucket_name: takeon.validationdb.export.bucket
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
       sqs_messageid_name: ingest-takeon-data
       sns_topic_arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
