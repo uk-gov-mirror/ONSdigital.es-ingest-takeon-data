@@ -1,0 +1,89 @@
+---
+resources:
+  - name: GIT-repository
+    type: git
+    source:
+      uri: 
+      branch: 
+
+  - name: Python-base
+    type: docker-image
+    source:
+      repository: python
+      tag: 3.7-slim
+
+  - name: Python-container
+    type: docker-image
+    source:
+      repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+      aws_access_key_id: ((ecr-svcaccount.api-key))
+      aws_secret_access_key: ((ecr-svcaccount.api-secret))
+
+jobs:
+  - name: installing-dependencies
+    serial: true
+    plan:
+      - get: GIT-repository
+        trigger: true
+      - get: Python-base
+        params:
+          save: true
+      - put: Python-container
+        params:
+          load_base: Python-base
+          build: GIT-repository
+      - task: run
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+              aws_access_key_id: ((ecr-svcaccount.api-key))
+              aws_secret_access_key: ((ecr-svcaccount.api-secret))
+          inputs:
+            - name: GIT-repository
+          run:
+            path: GIT-repository/install-dependencies.sh
+
+  - name: linting-and-tests
+    plan:
+      - get: GIT-repository
+        trigger: true
+        passed: [installing-dependencies]
+      - task: aws-tests
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+              aws_access_key_id: ((ecr-svcaccount.api-key))
+              aws_secret_access_key: ((ecr-svcaccount.api-secret))
+          inputs:
+            - name: GIT-repository
+          run:
+            path: GIT-repository/aws-test.sh
+
+  - name: serverless-deploy
+    plan:
+      - get: GIT-repository
+        trigger: true
+        passed: [linting-and-tests]
+      - task: serverless-aws
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+              aws_access_key_id: ((ecr-svcaccount.api-key))
+              aws_secret_access_key: ((ecr-svcaccount.api-secret))
+          params:
+            AWS_ACCESS_KEY_ID: ((serverless-access-key.AWS_ACCESS_KEY_ID))
+            AWS_SECRET_ACCESS_KEY: ((serverless-access-key.AWS_SECRET_ACCESS_KEY))
+            SLS_DEBUG: 1
+          inputs:
+            - name: GIT-repository
+          run:
+            path: GIT-repository/serverless.sh
