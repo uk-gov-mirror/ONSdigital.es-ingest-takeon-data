@@ -3,8 +3,8 @@ resources:
   - name: GIT-repository
     type: git
     source:
-      uri: 
-      branch: 
+      uri: https://github.com/ONSdigital/es-ingest-takeon-data.git
+      branch: master
 
   - name: Python-base
     type: docker-image

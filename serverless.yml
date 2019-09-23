@@ -1,0 +1,28 @@
+
+service: es-ingest-takeon-data
+provider:
+  name: aws
+  runtime: python3.7
+  region: eu-west-2
+  package:
+    individually: true
+
+functions:
+  deploy-function:
+    name: es-ingest-takeon-data
+    handler: ingest_takeon_data.lambda_handler
+    package:
+      include:
+        - ingest_takeon_data.py
+      exclude:
+        - ./**
+    layers:
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+    tags:
+      app: results
+    environment:
+      bucket_name: takeon-bucket
+      sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
+      sqs_messageid_name: ingest-takeon-data
+      sns_topic_arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
