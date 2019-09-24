@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-import ast
 # import random
 
 import boto3
@@ -20,12 +19,12 @@ class InputSchema(marshmallow.Schema):
     Scheme to ensure that environment variables are present and in the correct format.
     :return: None
     """
-    bucket_name = marshmallow.fields.str(required=True)
-    file_name = marshmallow.fields.str(required=True)
-    period = marshmallow.fields.str(required=True)
-    sqs_queue_url = marshmallow.fields.str(required=True)
-    sqs_messageid_name = marshmallow.fields.str(required=True)
-    sns_topic_arn = marshmallow.fields.str(required=True)
+    bucket_name = marshmallow.fields.Str(required=True)
+    file_name = marshmallow.fields.Str(required=True)
+    period = marshmallow.fields.Str(required=True)
+    sqs_queue_url = marshmallow.fields.Str(required=True)
+    sqs_messageid_name = marshmallow.fields.Str(required=True)
+    sns_topic_arn = marshmallow.fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -71,10 +70,12 @@ def lambda_handler(event, context):
         logger.info("Validated environment parameters.")
 
         input_file = read_from_s3(bucket_name, file_name)
+        
+        logger.info("Read from S3.")
 
         # gigantic extraction loop goes here
         # ...
-        input_json = json.load(input_file)
+        input_json = json.loads(input_file)
         output_json = []
         for survey in input_json['data']['allSurveys']['nodes']:
             if survey['survey'] == "066" or survey['survey'] == "076":
@@ -98,13 +99,15 @@ def lambda_handler(event, context):
 
                         output_json.append(outContrib)
 
-        s3.Object(bucket_name, "test_results_ingest_output.json").put(Body=output_json)
+        logger.info(output_json)
+
+        s3.Object(bucket_name, "test_results_ingest_output.json").put(Body=json.dumps(output_json))
 
     except AttributeError as e:
         error_message = ("Bad data encountered in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str("aws_request_id"))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -112,7 +115,7 @@ def lambda_handler(event, context):
         error_message = ("Parameter validation error in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str("aws_request_id"))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -121,7 +124,7 @@ def lambda_handler(event, context):
                          + str(e.response["Error"]["Code"]) + ") "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str("aws_request_id"))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -129,7 +132,7 @@ def lambda_handler(event, context):
         error_message = ("Key Error in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str("aws_request_id"))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -137,7 +140,7 @@ def lambda_handler(event, context):
         error_message = ("Incomplete Lambda response encountered in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str("aws_request_id"))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -146,7 +149,7 @@ def lambda_handler(event, context):
                          + current_module + " ("
                          + str(type(e)) + ") |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str("aws_request_id"))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
