@@ -26,8 +26,6 @@ class InputSchema(marshmallow.Schema):
     sqs_queue_url = marshmallow.fields.str(required=True)
     sqs_messageid_name = marshmallow.fields.str(required=True)
     sns_topic_arn = marshmallow.fields.str(required=True)
-    question_codes = marshmallow.fields.str(required=True)
-    question_labels = marshmallow.fields.str(required=True)
 
 
 def lambda_handler(event, context):
@@ -57,8 +55,16 @@ def lambda_handler(event, context):
         # sqs_queue_url = config['sqs_queue_url']
         # sqs_messageid_name = config['sqs_messageid_name']
         # sns_topic_arn = config['sns_topic_arn']
-        question_codes = ast.literal_eval(config['question_codes'])
-        question_labels = ast.literal_eval(config['question_labels'])
+        question_codes = ['601', '602', '603', '604', '605', '606', '607']
+        question_labels = {
+            '601': 'Q601_asphalting_sand',
+            '602': 'Q602_building_soft_sand',
+            '603': 'Q603_concreting_sand',
+            '604': 'Q604_bituminous_gravel',
+            '605': 'Q605_concreting_gravel',
+            '606': 'Q606_other_gravel',
+            '607': 'Q607_constructional_fill'
+        }
         if errors:
             raise ValueError(f"Error validating environment params: {errors}")
 

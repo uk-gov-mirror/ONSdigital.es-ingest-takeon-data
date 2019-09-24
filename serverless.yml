@@ -28,5 +28,3 @@ functions:
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
       sqs_messageid_name: ingest-takeon-data
       sns_topic_arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
-      question_codes: "['601', '602', '603', '604', '605', '606', '607']"
-      question_labels: "{'601': 'Q601_asphalting_sand','602': 'Q602_building_soft_sand','603': 'Q603_concreting_sand','604': 'Q604_bituminous_gravel','605': 'Q605_concreting_gravel','606': 'Q606_other_gravel','607': 'Q607_constructional_fill'}"
