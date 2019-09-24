@@ -82,16 +82,23 @@ def lambda_handler(event, context):
                 for contributor in survey['contributorsBySurvey']['nodes']:
                     if contributor['period'] == period:
                         outContrib = {}
+                        # basic contributor information
                         outContrib['period'] = contributor['period']
                         outContrib['responder_id'] = contributor['reference']
                         outContrib['gor_code'] = contributor['region']
                         outContrib['enterprise_ref'] = contributor['enterprisereference']
                         outContrib['name'] = contributor['enterprisename']
 
+                        # prepopulate default question answers
+                        for expected_question in question_codes:
+                            outContrib[question_labels[expected_question]] = ""
+
+                        # where contributors provided an aswer, use it instead
                         for question in contributor['responsesByReferenceAndPeriodAndSurvey']['nodes']:
                             if question['questioncode'] in question_codes:
                                 outContrib[question_labels[question['questioncode']]] = question['response']
 
+                        # survey marker is used instead of the survey code
                         if contributor['survey'] == "066":
                             outContrib['land_or_marine'] = "L"
                         elif contributor['survey'] == "076":
