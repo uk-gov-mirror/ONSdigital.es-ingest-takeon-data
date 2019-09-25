@@ -1,14 +1,12 @@
 import json
 import logging
 import os
-# import random
 
 import boto3
 import marshmallow
-# import pandas as pd
-from botocore.exceptions import ClientError, IncompleteReadError
+from botocore.exceptions import ClientError, IncompleteReadError, ParamValidationError
 
-# Clients
+# boto3 clients
 s3 = boto3.resource('s3', region_name='eu-west-2')
 sqs = boto3.client('sqs', region_name='eu-west-2')
 sns = boto3.client('sns', region_name='eu-west-2')
@@ -19,9 +17,11 @@ class InputSchema(marshmallow.Schema):
     Scheme to ensure that environment variables are present and in the correct format.
     :return: None
     """
-    bucket_name = marshmallow.fields.Str(required=True)
+    takeon_bucket_name = marshmallow.fields.Str(required=True)
+    results_bucket_name = marshmallow.fields.Str(required=True)
     file_name = marshmallow.fields.Str(required=True)
-    period = marshmallow.fields.Str(required=True)
+    function_name = marshmallow.fields.Str(required=True)
+    checkpoint = marshmallow.fields.Str(required=True)
     sqs_queue_url = marshmallow.fields.Str(required=True)
     sqs_messageid_name = marshmallow.fields.Str(required=True)
     sns_topic_arn = marshmallow.fields.Str(required=True)
@@ -35,96 +35,45 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: Success - True/False & Checkpoint
     """
-    current_module = "BMI Results Data Ingest"
+    current_module = "BMI Results Data Ingest - Wrangler"
     error_message = ""
     log_message = ""
-    logger = logging.getLogger("Results Data Ingest")
+    logger = logging.getLogger("Results Data Ingest - Wrangler")
     logger.setLevel(10)
     try:
         logger.info("Running Results Data Ingest...")
 
         # Needs to be declared inside the lambda_handler
-        # lambda_client = boto3.client('lambda', region_name='eu-west-2')
+        lambda_client = boto3.client('lambda', region_name='eu-west-2')
 
         # ENV vars
         config, errors = InputSchema().load(os.environ)
-        bucket_name = config['bucket_name']
+        takeon_bucket_name = config['takeon_bucket_name']
+        results_bucket_name = config['results_bucket_name']
         file_name = config['file_name']
-        period = config['period']
-        # sqs_queue_url = config['sqs_queue_url']
-        # sqs_messageid_name = config['sqs_messageid_name']
-        # sns_topic_arn = config['sns_topic_arn']
-        question_codes = ['601', '602', '603', '604', '605', '606', '607']
-        question_labels = {
-            '601': 'Q601_asphalting_sand',
-            '602': 'Q602_building_soft_sand',
-            '603': 'Q603_concreting_sand',
-            '604': 'Q604_bituminous_gravel',
-            '605': 'Q605_concreting_gravel',
-            '606': 'Q606_other_gravel',
-            '607': 'Q607_constructional_fill'
-        }
-        if errors:
-            raise ValueError(f"Error validating environment params: {errors}")
+        function_name = config['function_name']
+        checkpoint = config['checkpoint']
+        sqs_queue_url = config['sqs_queue_url']  # noqa
+        sqs_messageid_name = config['sqs_messageid_name']  # noqa
+        sns_topic_arn = config['sns_topic_arn']  # noqa
 
         logger.info("Validated environment parameters.")
 
-        input_file = read_from_s3(bucket_name, file_name)
-        
+        input_file = read_from_s3(takeon_bucket_name, file_name)
+
         logger.info("Read from S3.")
 
-        # gigantic extraction loop goes here
-        # ...
-        input_json = json.loads(input_file)
-        output_json = []
-        for survey in input_json['data']['allSurveys']['nodes']:
-            if survey['survey'] == "066" or survey['survey'] == "076":
-                for contributor in survey['contributorsBySurvey']['nodes']:
-                    if contributor['period'] == period:
-                        outContrib = {}
-                        # basic contributor information
-                        outContrib['period'] = contributor['period']
-                        outContrib['responder_id'] = contributor['reference']
-                        outContrib['gor_code'] = contributor['region']
-                        outContrib['enterprise_ref'] = contributor['enterprisereference']
-                        outContrib['name'] = contributor['enterprisename']
+        method_return = lambda_client.invoke(
+            FunctionName=function_name, Payload=input_file
+        )
 
-                        # prepopulate default question answers
-                        for expected_question in question_codes:
-                            outContrib[question_labels[expected_question]] = ""
+        output_json = method_return.get('Payload').read().decode("utf-8")
 
-                        # where contributors provided an aswer, use it instead
-                        for question in contributor['responsesByReferenceAndPeriodAndSurvey']['nodes']:
-                            if question['questioncode'] in question_codes:
-                                outContrib[question_labels[question['questioncode']]] = question['response']
+        write_to_s3(results_bucket_name, "test_results_ingest_output.json", output_json)
 
-                        # survey marker is used instead of the survey code
-                        if contributor['survey'] == "066":
-                            outContrib['land_or_marine'] = "L"
-                        elif contributor['survey'] == "076":
-                            outContrib['land_or_marine'] = "M"
+        logger.info("Data ready for Results pipeline. Written to S3.")
 
-                        output_json.append(outContrib)
-
-        logger.info(output_json)
-
-        s3.Object(bucket_name, "test_results_ingest_output.json").put(Body=json.dumps(output_json))
-
-    except AttributeError as e:
-        error_message = ("Bad data encountered in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str("aws_request_id"))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except ValueError as e:
-        error_message = ("Parameter validation error in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str("aws_request_id"))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+        send_sns_message(checkpoint, sns_topic_arn)
 
     except ClientError as e:
         error_message = ("AWS Error in ("
@@ -145,6 +94,14 @@ def lambda_handler(event, context):
 
     except IncompleteReadError as e:
         error_message = ("Incomplete Lambda response encountered in "
+                         + current_module + " |- "
+                         + str(e.args) + " | Request ID: "
+                         + str("aws_request_id"))
+
+        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+
+    except ParamValidationError as e:
+        error_message = ("Blank or empty environment variable in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
                          + str("aws_request_id"))
@@ -174,13 +131,27 @@ def read_from_s3(bucket_name, file_name):
     Given the name of the bucket and the filename(key), this function will
     return a file. File is JSON format.
     :param bucket_name: Name of the S3 bucket - Type: String
-    :param file_name: Name of the file - Type: String
+    :param file_name: Name of the file to be read - Type: String
     :return: input_file: The JSON file in S3 - Type: JSON
     """
     object = s3.Object(bucket_name, file_name)
     input_file = object.get()['Body'].read()
 
     return input_file
+
+
+def write_to_s3(bucket_name, file_name, input_body):
+    """
+    Given the bucket name, desired file name and file body, writes a file to the
+    specified bucket.
+    :param bucket_name: Name of the S3 bucket - Type: String
+    :param file_name: Name of the file to be written - Type: String
+    :param input_body: Data to be written to the file - Type: JSON
+    :return: None
+    """
+    s3.Object(bucket_name, file_name).put(
+        Body=json.dumps(input_body)
+    )
 
 
 def send_sns_message(checkpoint, sns_topic_arn):
@@ -196,7 +167,8 @@ def send_sns_message(checkpoint, sns_topic_arn):
         "success": True,
         "module": "Results Data Ingest",
         "checkpoint": checkpoint,
-        "message": ""
+        "message": "Take On data ingest successful. Output file stored in " +
+        "results-s3-bucket as results_ingest_output.json"
     }
 
     return sns.publish(TargetArn=sns_topic_arn, Message=json.dumps(sns_message))
