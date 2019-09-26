@@ -16,7 +16,7 @@ class TestIngestTakeOnData():
             "os.environ",
             {
                 "takeon_bucket_name": "mock-bucket",
-                "results_bucket_name": "mock-bucket"
+                "results_bucket_name": "mock-bucket",
                 "file_name": "mock-file",
                 "function_name": "mock-function",
                 "period": "201809",
