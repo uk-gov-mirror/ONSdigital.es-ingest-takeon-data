@@ -1,12 +1,12 @@
+import ingest_takeon_data
+import ingest_takeon_data_method
+
 import json
 import unittest.mock as mock
 
 import boto3
 from botocore.response import StreamingBody
 from moto import mock_s3, mock_sns
-
-import ingest_takeon_data
-import ingest_takeon_data_method
 
 
 class TestIngestTakeOnData():
