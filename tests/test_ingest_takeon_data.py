@@ -1,12 +1,15 @@
-import ingest_takeon_data
-import ingest_takeon_data_method
-
 import json
 import unittest.mock as mock
+import sys, os  # noqa
+myPath = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, myPath + '/../')
 
-import boto3
-from botocore.response import StreamingBody
-from moto import mock_s3, mock_sns
+import boto3  # noqa
+from botocore.response import StreamingBody  # noqa
+from moto import mock_s3, mock_sns  # noqa
+
+import ingest_takeon_data  # noqa
+import ingest_takeon_data_method  # noqa
 
 
 class TestIngestTakeOnData():
