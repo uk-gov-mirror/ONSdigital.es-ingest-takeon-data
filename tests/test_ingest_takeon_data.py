@@ -1,8 +1,5 @@
 import json
 import unittest.mock as mock
-import sys, os  # noqa
-myPath = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, myPath + '/../')
 
 import boto3  # noqa
 from botocore.response import StreamingBody  # noqa
