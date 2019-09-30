@@ -173,7 +173,7 @@ class TestIngestTakeOnData():
     def test_method_general_exception(self):
         with open("tests/fixtures/takeon-data-export.json") as file:
             input_data = json.load(file)
-            with mock.patch("tests/fixtures/ingest_takeon_data_method.json.loads") as mocked:
+            with mock.patch("ingest_takeon_data_method.json.loads") as mocked:
                 mocked.side_effect = Exception("General exception")
                 response = ingest_takeon_data_method.lambda_handler(
                     json.dumps(input_data), None
