@@ -1,5 +1,5 @@
 ---
-service: es-ingest-takeon
+service: es-ingest-takeon-data
 provider:
   name: aws
   vpc:
@@ -15,7 +15,7 @@ provider:
 
 functions:
   deploy-wrangler:
-    name: es-ingest-takeon-wrangler
+    name: es-ingest-takeon-data-wrangler
     handler: ingest_takeon_data.lambda_handler
     package:
       include:
@@ -38,7 +38,7 @@ functions:
       sns_topic_arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
 
   deploy-method:
-    name: es-ingest-takeon-method
+    name: es-ingest-takeon-data-method
     handler: ingest_takeon_data-method.lambda_handler
     package:
       include:
