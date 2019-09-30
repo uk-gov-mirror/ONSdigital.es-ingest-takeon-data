@@ -171,7 +171,7 @@ class TestIngestTakeOnData():
         assert returned_value == expected
 
     def test_method_general_exception(self):
-        with open("ttests/fixtures/takeon-data-export.json") as file:
+        with open("tests/fixtures/takeon-data-export.json") as file:
             input_data = json.load(file)
             with mock.patch("tests/fixtures/ingest_takeon_data_method.json.loads") as mocked:
                 mocked.side_effect = Exception("General exception")
