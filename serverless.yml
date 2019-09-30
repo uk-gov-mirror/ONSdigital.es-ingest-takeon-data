@@ -1,5 +1,5 @@
 ---
-service: es-ingest-takeon-data-stack
+service: es-ingest-takeon-data
 provider:
   name: aws
   vpc:
