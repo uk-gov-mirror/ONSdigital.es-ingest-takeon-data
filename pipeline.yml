@@ -63,7 +63,16 @@ jobs:
           inputs:
             - name: GIT-repository
           run:
-            path: GIT-repository/aws-test.sh
+            path: sh
+            args:
+            - -exc
+            - |
+              whoami
+              pwd
+              env
+              find .
+              cd GIT-repository
+              PYTHONPATH=$(pwd)/GIT-repository pytest
 
   - name: serverless-deploy
     plan:

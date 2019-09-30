@@ -1,12 +1,12 @@
 import json
 import unittest.mock as mock
 
-import boto3  # noqa
-from botocore.response import StreamingBody  # noqa
-from moto import mock_s3, mock_sns  # noqa
+import boto3
+from botocore.response import StreamingBody
+from moto import mock_s3, mock_sns
 
-import ingest_takeon_data  # noqa
-import ingest_takeon_data_method  # noqa
+import ingest_takeon_data
+import ingest_takeon_data_method
 
 
 class TestIngestTakeOnData():
@@ -43,7 +43,7 @@ class TestIngestTakeOnData():
     def test_happy_path(self, mock_sns_return, mock_s3_write, mock_s3_return, mock_client):  # noqa: E501
         mock_client_object = mock.Mock()
         mock_client.return_value = mock_client_object
-        with open("tests/fixtures/takeon-data-export.json") as file:
+        with open("takeon-data-export.json") as file:
             input_data = json.load(file)
             mock_s3_return.return_value = json.dumps(input_data)
 
@@ -59,7 +59,7 @@ class TestIngestTakeOnData():
     def test_general_exception(self, mock_s3_return, mock_client):
         mock_client_object = mock.Mock()
         mock_client.return_value = mock_client_object
-        with open("tests/fixtures/takeon-data-export.json") as file:
+        with open("takeon-data-export.json") as file:
             input_data = json.load(file)
             mock_s3_return.return_value = json.dumps(input_data)
             mock_s3_return.side_effect = Exception("General exception")
@@ -109,12 +109,12 @@ class TestIngestTakeOnData():
     @mock.patch('ingest_takeon_data.boto3.client')
     @mock.patch('ingest_takeon_data.read_from_s3')
     def test_incomplete_json(self, mock_get_from_s3, mock_client, mock_sns):
-        with open("tests/fixtures/takeon-data-export.json") as file:
+        with open("takeon-data-export.json") as file:
             input_data = json.load(file)
 
         mock_get_from_s3.return_value = json.dumps(input_data)
 
-        with open('tests/fixtures/test_results_ingest_output.json', "rb") as file:
+        with open('test_results_ingest_output.json', "rb") as file:
             mock_client.return_value.invoke.return_value = {"Payload":
                                                             StreamingBody(file, 2)}
 
@@ -135,13 +135,13 @@ class TestIngestTakeOnData():
 
         client.create_bucket(Bucket="TEMP")
 
-        with open("tests/fixtures/takeon-data-export.json", "rb") as file:
+        with open("takeon-data-export.json", "rb") as file:
 
             ingest_takeon_data.write_to_s3("TEMP", "123", json.load(file))
 
             response = ingest_takeon_data.read_from_s3("TEMP", "123")
 
-            with open("tests/fixtures/takeon-data-export.json", "rb") as compare_file:
+            with open("takeon-data-export.json", "rb") as compare_file:
 
                 assert json.loads(response) == json.load(compare_file)
 
@@ -159,19 +159,19 @@ class TestIngestTakeOnData():
 # METHOD TESTS
 # ---------------------------------------------------------------------------------------
     def test_method_happy_path(self):
-        with open("tests/fixtures/takeon-data-export.json") as input_file:
+        with open("takeon-data-export.json") as input_file:
             input_data = json.load(input_file)
             returned_value = ingest_takeon_data_method.lambda_handler(
                 json.dumps(input_data), None
             )
 
-        with open("tests/fixtures/test_results_ingest_output.json") as expected_file:
+        with open("test_results_ingest_output.json") as expected_file:
             expected = json.load(expected_file)
 
         assert returned_value == expected
 
     def test_method_general_exception(self):
-        with open("tests/fixtures/takeon-data-export.json") as file:
+        with open("takeon-data-export.json") as file:
             input_data = json.load(file)
             with mock.patch("ingest_takeon_data_method.json.loads") as mocked:
                 mocked.side_effect = Exception("General exception")
@@ -184,7 +184,7 @@ class TestIngestTakeOnData():
                 assert """General exception""" in response["error"]
 
     def test_method_key_error(self):
-        with open("tests/fixtures/takeon-data-export.json") as file:
+        with open("takeon-data-export.json") as file:
             input_data = json.load(file)
             ingest_takeon_data_method.os.environ.pop("period")
             returned_value = ingest_takeon_data_method.lambda_handler(
