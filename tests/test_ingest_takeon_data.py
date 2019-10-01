@@ -40,7 +40,7 @@ class TestIngestTakeOnData():
     @mock.patch("ingest_takeon_data.read_from_s3")
     @mock.patch("ingest_takeon_data.write_to_s3")
     @mock.patch("ingest_takeon_data.send_sns_message")
-    def Test_happy_path(self, mock_sns_return, mock_s3_write, mock_s3_return, mock_client):  # noqa: E501
+    def test_happy_path(self, mock_sns_return, mock_s3_write, mock_s3_return, mock_client):  # noqa: E501
         mock_client_object = mock.Mock()
         mock_client.return_value = mock_client_object
         with open("tests/fixtures/takeon-data-export.json") as file:
