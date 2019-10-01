@@ -1,6 +1,6 @@
 ---
 resources:
-  - name: GIT-repository
+  - name: repository
     type: git
     check_every: 24h
     icon: github-circle
@@ -12,7 +12,7 @@ resources:
 jobs:
   - name: serverless-deploy
     plan:
-      - get: GIT-repository
+      - get: repository
         trigger: true
       - task: serverless-aws
         config:
@@ -28,6 +28,6 @@ jobs:
             AWS_SECRET_ACCESS_KEY: ((serverless-access-key.AWS_SECRET_ACCESS_KEY))
             SLS_DEBUG: 1
           inputs:
-            - name: GIT-repository
+            - name: repository
           run:
-            path: GIT-repository/serverless.sh
+            path: repository/serverless.sh
