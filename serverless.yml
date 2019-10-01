@@ -4,10 +4,10 @@ provider:
   name: aws
   vpc:
       securityGroupIds:
-        - results-sg-public
+        - sg-05aa97e1227df5125
       subnetIds:
-        - results-sub-public-1
-        - results-sub-public-2
+        - subnet-0b1b5bbe387f7fad3
+        - subnet-0fec6408e14c02673
   runtime: python3.7
   region: eu-west-2
   package:
