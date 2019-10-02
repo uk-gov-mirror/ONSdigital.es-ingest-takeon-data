@@ -1,18 +1,151 @@
 ---
+resource_types:
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: teliaoss/github-pr-resource
+
 resources:
   - name: repository
+    type: pull-request
+    check_every: 24h
+    webhook_token: ((webhook_token-concourse))
+    icon: github-circle
+    source:
+      repository: ONSdigital/es-ingest-takeon-data
+      access_token: ((git_access_token))
+
+  - name: concourse-repository
+    type: git
+    icon: github-circle
+    source:
+      uri: https://github.com/ONSdigital/es-concourse-deploy.git
+      branch: lu_3662_pull_request_cleaned
+
+  - name: deploy-repository
     type: git
     check_every: 24h
     icon: github-circle
-    webhook_token: ((webhook_token-concourse))
+    webhook_token: 123
     source:
       uri: https://github.com/ONSdigital/es-ingest-takeon-data.git
       branch: master 
 
+  - name: base-python-image
+    type: docker-image
+    icon: language-python
+    source:
+      repository: python
+      tag: 3.7-slim
+
+  - name: ecr-image-upload
+    type: docker-image
+    icon: docker
+    source:
+      repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+      aws_access_key_id: ((ecr-svcaccount.api-key))
+      aws_secret_access_key: ((ecr-svcaccount.api-secret))
+
 jobs:
+  - name: installing dependencies
+    serial: true
+    plan:
+
+      - get: repository
+        trigger: true
+
+      - get: concourse-repository
+
+      - get: base-python-image
+        params:
+          save: true
+
+      - put: ecr-image-upload
+        params:
+          load_base: base-python-image
+          build: repository
+
+      - task: run
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+              aws_access_key_id: ((ecr-svcaccount.api-key))
+              aws_secret_access_key: ((ecr-svcaccount.api-secret))
+          inputs:
+            - name: repository
+            - name: concourse-repository
+          run:
+            path: concourse-repository/install-dependencies.sh
+
+  - name: linting & tests
+    plan:
+
+      - get: repository
+        trigger: true
+        passed: [installing dependencies]
+        version: every
+
+      - put: repository
+        params:
+          path: repository
+          status: success
+
+      - in_parallel:
+        - task: aws-tests
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+                aws_access_key_id: ((ecr-svcaccount.api-key))
+                aws_secret_access_key: ((ecr-svcaccount.api-secret))
+            inputs:
+              - name: repository
+            run:
+              path: sh
+              args:
+                - -exc
+                - |
+                  cd repository
+                  PYTHONPATH=$(pwd)/repository pytest
+          on_failure:
+            put: repository
+            params:
+              path: repository
+              status: failure
+              description: Failing tests are present
+
+        - task: flake8
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+                aws_access_key_id: ((ecr-svcaccount.api-key))
+                aws_secret_access_key: ((ecr-svcaccount.api-secret))
+            inputs:
+              - name: repository
+            run:
+              path: sh
+              args:
+                - -exc
+                - |
+                  flake8 $(pwd)/repository
+          on_failure:
+            put: repository
+            params:
+              path: repository
+              status: failure
+              description: Code standards are not met
+
   - name: serverless-deploy
     plan:
-      - get: repository
+      - get: deploy-repository
         trigger: true
       - task: serverless-aws
         config:
@@ -28,6 +161,6 @@ jobs:
             AWS_SECRET_ACCESS_KEY: ((serverless-access-key.AWS_SECRET_ACCESS_KEY))
             SLS_DEBUG: 1
           inputs:
-            - name: repository
+            - name: deploy-repository
           run:
-            path: repository/serverless.sh
+            path: deploy-repository/serverless.sh
