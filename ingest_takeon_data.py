@@ -64,12 +64,16 @@ def lambda_handler(event, context):
         logger.info("Read from S3.")
 
         method_return = lambda_client.invoke(
-            FunctionName=function_name, Payload=input_file
+         FunctionName=function_name, Payload=input_file
         )
 
         output_json = method_return.get('Payload').read().decode("utf-8")
 
-        write_to_s3(results_bucket_name, "test_results_ingest_output.json", output_json)
+        write_to_s3(
+            results_bucket_name,
+            "test_results_ingest_output.json",
+            json.loads(output_json)
+        )
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 

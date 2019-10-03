@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 
@@ -43,7 +42,7 @@ def lambda_handler(event, context):
             '607': 'Q607_constructional_fill'
         }
 
-        input_json = json.loads(event)
+        input_json = event
         output_json = []
         for survey in input_json['data']['allSurveys']['nodes']:
             if survey['survey'] == "066" or survey['survey'] == "076":
