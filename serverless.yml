@@ -4,10 +4,10 @@ provider:
   name: aws
   vpc:
       securityGroupIds:
-        - sg-05aa97e1227df5125
+        - sg-081a03938d3810382
       subnetIds:
-        - subnet-0b1b5bbe387f7fad3
-        - subnet-0fec6408e14c02673
+        - subnet-0b666f951614cd91f
+        - subnet-017096d3f07c7a93b
   runtime: python3.7
   region: eu-west-2
   package:
@@ -29,9 +29,9 @@ functions:
       app: results
     environment:
       takeon_bucket_name: takeon.validationdb.export.bucket
-      results_bucket_name: results-s3-bucket
+      results_bucket_name: results-tf-vpc-s3
       file_name: takeon-data-export-2019-09-23-13:23:38
-      function_name: ingest_takeon_data_method
+      function_name: es-ingest-takeon-data-method
       checkpoint: 0
       sqs_queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
       sqs_messageid_name: ingest-takeon-data
