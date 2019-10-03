@@ -20,7 +20,7 @@ resources:
     icon: github-circle
     source:
       uri: https://github.com/ONSdigital/es-concourse-deploy.git
-      branch: lu_3662_pull_request_cleaned
+      branch: master
 
   - name: deploy-repository
     type: git
