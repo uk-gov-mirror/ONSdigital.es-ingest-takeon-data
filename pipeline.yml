@@ -94,54 +94,55 @@ jobs:
           status: success
 
       - in_parallel:
-        - task: aws-tests
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source:
-                repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
-                aws_access_key_id: ((ecr-svcaccount.api-key))
-                aws_secret_access_key: ((ecr-svcaccount.api-secret))
-            inputs:
-              - name: repository
-            run:
-              path: sh
-              args:
-                - -exc
-                - |
-                  cd repository
-                  PYTHONPATH=$(pwd)/repository pytest
-          on_failure:
-            put: repository
-            params:
-              path: repository
-              status: failure
-              description: Failing tests are present
+        steps:
+          - task: aws-tests
+            config:
+              platform: linux
+              image_resource:
+                type: docker-image
+                source:
+                  repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+                  aws_access_key_id: ((ecr-svcaccount.api-key))
+                  aws_secret_access_key: ((ecr-svcaccount.api-secret))
+              inputs:
+                - name: repository
+              run:
+                path: sh
+                args:
+                  - -exc
+                  - |
+                    cd repository
+                    PYTHONPATH=$(pwd)/repository pytest
+            on_failure:
+              put: repository
+              params:
+                path: repository
+                status: failure
+                description: Failing tests are present
 
-        - task: flake8
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source:
-                repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
-                aws_access_key_id: ((ecr-svcaccount.api-key))
-                aws_secret_access_key: ((ecr-svcaccount.api-secret))
-            inputs:
-              - name: repository
-            run:
-              path: sh
-              args:
-                - -exc
-                - |
-                  flake8 $(pwd)/repository
-          on_failure:
-            put: repository
-            params:
-              path: repository
-              status: failure
-              description: Code standards are not met
+          - task: flake8
+            config:
+              platform: linux
+              image_resource:
+                type: docker-image
+                source:
+                  repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+                  aws_access_key_id: ((ecr-svcaccount.api-key))
+                  aws_secret_access_key: ((ecr-svcaccount.api-secret))
+              inputs:
+                - name: repository
+              run:
+                path: sh
+                args:
+                  - -exc
+                  - |
+                    flake8 $(pwd)/repository
+            on_failure:
+              put: repository
+              params:
+                path: repository
+                status: failure
+                description: Code standards are not met
 
   - name: serverless-deploy
     plan:
