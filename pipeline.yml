@@ -22,7 +22,7 @@ resources:
     webhook_token: ((webhook_token-concourse))
     source:
       uri: https://github.com/ONSdigital/es-ingest-takeon-data.git
-      branch: master 
+      branch: testing-pull-request-trigger
 
   - name: base-python-image
     type: docker-image
@@ -61,7 +61,7 @@ jobs:
 
       - get: repository
         trigger: true
-        passed: [installing dependencies]
+        passed: [installing-dependencies]
         version: every
 
       - put: repository

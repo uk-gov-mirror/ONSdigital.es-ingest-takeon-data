@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cd repository
+cd deploy-repository
 echo Packaging serverless bundle...
 serverless package --package pkg
 find ./pkg
