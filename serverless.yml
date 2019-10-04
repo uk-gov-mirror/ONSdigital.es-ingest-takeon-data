@@ -4,10 +4,10 @@ provider:
   name: aws
   vpc:
       securityGroupIds:
-        - sg-081a03938d3810382
+        - sg-0c9eb46a0f8b6d258
       subnetIds:
-        - subnet-0b666f951614cd91f
-        - subnet-017096d3f07c7a93b
+        - subnet-0669bf44635dea3ec
+        - subnet-03c244c957d3ca05f
   runtime: python3.7
   region: eu-west-2
   package:

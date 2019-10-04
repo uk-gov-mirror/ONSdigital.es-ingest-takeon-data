@@ -6,7 +6,6 @@ from botocore.response import StreamingBody
 from moto import mock_s3, mock_sns
 
 import ingest_takeon_data
-import ingest_takeon_data_method
 
 
 class TestIngestTakeOnData():
@@ -33,9 +32,6 @@ class TestIngestTakeOnData():
     def teardown_class(cls):
         cls.mock_os_patcher.stop()
 
-# ---------------------------------------------------------------------------------------
-# WRANGLER TESTS
-# ---------------------------------------------------------------------------------------
     @mock.patch("ingest_takeon_data.boto3.client")
     @mock.patch("ingest_takeon_data.read_from_s3")
     @mock.patch("ingest_takeon_data.write_to_s3")
@@ -46,13 +42,17 @@ class TestIngestTakeOnData():
         with open("tests/fixtures/takeon-data-export.json") as file:
             input_data = json.load(file)
             mock_s3_return.return_value = json.dumps(input_data)
+            with open("tests/fixtures/takeon-data-export.json", "rb") as file:
+                mock_client_object.invoke.return_value = {
+                    "Payload": StreamingBody(file, 1261217)
+                }
 
-            returned_value = ingest_takeon_data.lambda_handler(
-                None, None
-            )
+                returned_value = ingest_takeon_data.lambda_handler(
+                    None, None
+                )
 
-            assert "success" in returned_value
-            assert returned_value["success"] is True
+                assert "success" in returned_value
+                assert returned_value["success"] is True
 
     @mock.patch("ingest_takeon_data.boto3.client")
     @mock.patch("ingest_takeon_data.read_from_s3")
@@ -154,42 +154,3 @@ class TestIngestTakeOnData():
         out = ingest_takeon_data.send_sns_message("3", topic_arn)
 
         assert (out['ResponseMetadata']['HTTPStatusCode'] == 200)
-
-# ---------------------------------------------------------------------------------------
-# METHOD TESTS
-# ---------------------------------------------------------------------------------------
-    def test_method_happy_path(self):
-        with open("tests/fixtures/takeon-data-export.json") as input_file:
-            input_data = json.load(input_file)
-            returned_value = ingest_takeon_data_method.lambda_handler(
-                json.dumps(input_data), None
-            )
-
-        with open("tests/fixtures/test_results_ingest_output.json") as expected_file:
-            expected = json.load(expected_file)
-
-        assert returned_value == expected
-
-    def test_method_general_exception(self):
-        with open("tests/fixtures/takeon-data-export.json") as file:
-            input_data = json.load(file)
-            with mock.patch("ingest_takeon_data_method.json.loads") as mocked:
-                mocked.side_effect = Exception("General exception")
-                response = ingest_takeon_data_method.lambda_handler(
-                    json.dumps(input_data), None
-                )
-
-                assert "success" in response
-                assert response["success"] is False
-                assert """General exception""" in response["error"]
-
-    def test_method_key_error(self):
-        with open("tests/fixtures/takeon-data-export.json") as file:
-            input_data = json.load(file)
-            ingest_takeon_data_method.os.environ.pop("period")
-            returned_value = ingest_takeon_data_method.lambda_handler(
-                json.dumps(input_data), None
-            )
-            ingest_takeon_data_method.os.environ["period"] = "201809"
-
-            assert """Key Error""" in returned_value["error"]

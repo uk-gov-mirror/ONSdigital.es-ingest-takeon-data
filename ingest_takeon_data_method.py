@@ -63,7 +63,8 @@ def lambda_handler(event, context):
                         # where contributors provided an aswer, use it instead
                         for question in contributor['responsesByReferenceAndPeriodAndSurvey']['nodes']:  # noqa: E501
                             if question['questioncode'] in question_codes:
-                                out_contrib[question_labels[question['questioncode']]] = question['response']  # noqa: E501
+                                out_contrib[question_labels[question['questioncode']]]\
+                                    = question['response']
 
                         # survey marker is used instead of the survey code
                         if contributor['survey'] == "066":
