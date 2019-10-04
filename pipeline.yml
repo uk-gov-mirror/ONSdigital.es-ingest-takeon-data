@@ -15,13 +15,6 @@ resources:
       repository: ONSdigital/es-ingest-takeon-data
       access_token: ((git_access_token))
 
-  - name: concourse-repository
-    type: git
-    icon: github-circle
-    source:
-      uri: https://github.com/ONSdigital/es-concourse-deploy.git
-      branch: master
-
   - name: deploy-repository
     type: git
     check_every: 24h
@@ -54,8 +47,6 @@ jobs:
       - get: repository
         trigger: true
 
-      - get: concourse-repository
-
       - get: base-python-image
         params:
           save: true
@@ -64,21 +55,6 @@ jobs:
         params:
           load_base: base-python-image
           build: repository
-
-      - task: run
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
-              aws_access_key_id: ((ecr-svcaccount.api-key))
-              aws_secret_access_key: ((ecr-svcaccount.api-secret))
-          inputs:
-            - name: repository
-            - name: concourse-repository
-          run:
-            path: concourse-repository/install-dependencies.sh
 
   - name: linting & tests
     plan:
@@ -94,7 +70,6 @@ jobs:
           status: success
 
       - in_parallel:
-        steps:
           - task: aws-tests
             config:
               platform: linux
