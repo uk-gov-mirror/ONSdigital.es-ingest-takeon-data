@@ -40,7 +40,7 @@ resources:
       aws_secret_access_key: ((ecr-svcaccount.api-secret))
 
 jobs:
-  - name: installing dependencies
+  - name: installing-dependencies
     serial: true
     plan:
 
@@ -56,7 +56,7 @@ jobs:
           load_base: base-python-image
           build: repository
 
-  - name: linting & tests
+  - name: linting-&-tests
     plan:
 
       - get: repository
@@ -140,4 +140,3 @@ jobs:
             - name: deploy-repository
           run:
             path: deploy-repository/serverless.sh
-            
