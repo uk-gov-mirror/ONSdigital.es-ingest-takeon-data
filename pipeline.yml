@@ -119,6 +119,32 @@ jobs:
                 status: failure
                 description: Code standards are not met
 
+  - name: retrieving-credentials
+    plan:
+      - get: deploy-repository
+        trigger: true
+      - task: obtaining-vpc-details
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: mesosphere/aws-cli
+          params:
+            params:
+              AWS_ACCESS_KEY_ID: ((serverless-access-key.AWS_ACCESS_KEY_ID))
+              AWS_SECRET_ACCESS_KEY: ((serverless-access-key.AWS_SECRET_ACCESS_KEY))
+              AWS_DEFAULT_REGION: eu-west-2
+              SLS_DEBUG: 1
+          inputs:
+            - name: deploy-repository
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                help
+
   - name: serverless-deploy
     plan:
       - get: deploy-repository
