@@ -22,7 +22,7 @@ resources:
     webhook_token: ((webhook_token-concourse))
     source:
       uri: https://github.com/ONSdigital/es-ingest-takeon-data.git
-      branch: master 
+      branch: lu_3857_vpc_creds
 
   - name: base-python-image
     type: docker-image
@@ -119,7 +119,7 @@ jobs:
                 status: failure
                 description: Code standards are not met
 
-  - name: retrieving-credentials
+  - name: serverless-deploy
     plan:
       - get: deploy-repository
         trigger: true
@@ -131,24 +131,22 @@ jobs:
             source:
               repository: mesosphere/aws-cli
           params:
-            params:
-              AWS_ACCESS_KEY_ID: ((serverless-access-key.AWS_ACCESS_KEY_ID))
-              AWS_SECRET_ACCESS_KEY: ((serverless-access-key.AWS_SECRET_ACCESS_KEY))
-              AWS_DEFAULT_REGION: eu-west-2
-              SLS_DEBUG: 1
+            AWS_ACCESS_KEY_ID: ((serverless-access-key.AWS_ACCESS_KEY_ID))
+            AWS_SECRET_ACCESS_KEY: ((serverless-access-key.AWS_SECRET_ACCESS_KEY))
+            AWS_DEFAULT_REGION: eu-west-2
+            SLS_DEBUG: 1
+            TERM: xterm
           inputs:
             - name: deploy-repository
           run:
             path: sh
             args:
-              - -exc
+              - -ec
               - |
-                help
+                aws ec2 describe-subnets --filters Name=tag:Name,Values=results-tf-sub-public-\* --subnet-ids --output json > subnets.json
+          outputs:
+            - name: subnets.json
 
-  - name: serverless-deploy
-    plan:
-      - get: deploy-repository
-        trigger: true
       - task: serverless-aws
         config:
           platform: linux
@@ -164,6 +162,7 @@ jobs:
             SLS_DEBUG: 1
           inputs:
             - name: deploy-repository
+            - name: subnets
           run:
             path: deploy-repository/serverless.sh
             
