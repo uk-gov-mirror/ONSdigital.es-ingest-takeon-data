@@ -145,7 +145,7 @@ jobs:
               - |
                 aws ec2 describe-subnets --filters Name=tag:Name,Values=results-tf-sub-public-\* --subnet-ids --output json > subnets.json
           outputs:
-            - name: subnets.json
+            - name: subnets
 
       - task: serverless-aws
         config:

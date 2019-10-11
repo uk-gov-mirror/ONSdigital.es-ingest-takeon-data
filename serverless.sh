@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+ls
 cd deploy-repository
 echo Packaging serverless bundle...
 serverless package --package pkg
