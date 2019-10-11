@@ -143,7 +143,7 @@ jobs:
             args:
               - -ec
               - |
-                aws ec2 describe-subnets --filters Name=tag:Name,Values=results-tf-sub-public-\* --subnet-ids --output json > subnets.json
+                aws ec2 describe-subnets --filters Name=tag:Name,Values=results-tf-sub-public-\* --subnet-ids --output json > subnets_output.json
           outputs:
             - name: subnets
 
