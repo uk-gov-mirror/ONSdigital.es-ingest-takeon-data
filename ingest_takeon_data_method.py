@@ -20,10 +20,10 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: Success - True/False & Checkpoint
     """
-    current_module = "BMI Results Data Ingest - Method"
+    current_module = "Results Data Ingest - Method"
     error_message = ""
     log_message = ""
-    logger = logging.getLogger("Results Data Ingest - Method")
+    logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
     try:
         logger.info("Retrieving data from take on file...")

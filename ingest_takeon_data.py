@@ -22,8 +22,6 @@ class InputSchema(marshmallow.Schema):
     file_name = marshmallow.fields.Str(required=True)
     function_name = marshmallow.fields.Str(required=True)
     checkpoint = marshmallow.fields.Str(required=True)
-    sqs_queue_url = marshmallow.fields.Str(required=True)
-    sqs_messageid_name = marshmallow.fields.Str(required=True)
     sns_topic_arn = marshmallow.fields.Str(required=True)
 
 
@@ -35,10 +33,10 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: Success - True/False & Checkpoint
     """
-    current_module = "BMI Results Data Ingest - Wrangler"
+    current_module = "Results Data Ingest - Wrangler"
     error_message = ""
     log_message = ""
-    logger = logging.getLogger("Results Data Ingest - Wrangler")
+    logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
     try:
         logger.info("Running Results Data Ingest...")
@@ -53,9 +51,7 @@ def lambda_handler(event, context):
         file_name = config['file_name']
         function_name = config['function_name']
         checkpoint = config['checkpoint']
-        sqs_queue_url = config['sqs_queue_url']  # noqa
-        sqs_messageid_name = config['sqs_messageid_name']  # noqa
-        sns_topic_arn = config['sns_topic_arn']  # noqa
+        sns_topic_arn = config['sns_topic_arn']
 
         logger.info("Validated environment parameters.")
 
