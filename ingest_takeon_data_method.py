@@ -31,7 +31,6 @@ def lambda_handler(event, context):
         config, errors = InputSchema().load(os.environ)
 
         period = config['period']
-        question_codes = ['601', '602', '603', '604', '605', '606', '607']
         question_labels = {
             '601': 'Q601_asphalting_sand',
             '602': 'Q602_building_soft_sand',
@@ -57,12 +56,12 @@ def lambda_handler(event, context):
                         out_contrib['name'] = contributor['enterprisename']
 
                         # prepopulate default question answers
-                        for expected_question in question_codes:
+                        for expected_question in question_labels.keys():
                             out_contrib[question_labels[expected_question]] = ""
 
                         # where contributors provided an aswer, use it instead
                         for question in contributor['responsesByReferenceAndPeriodAndSurvey']['nodes']:  # noqa: E501
-                            if question['questioncode'] in question_codes:
+                            if question['questioncode'] in question_labels.keys():
                                 out_contrib[question_labels[question['questioncode']]]\
                                     = question['response']
 
