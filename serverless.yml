@@ -4,10 +4,10 @@ provider:
   name: aws
   vpc:
       securityGroupIds:
-        - ${file(../subnets/security_groups_output.json):SecurityGroups.0.GroupId}
+        - ${file(../json_outputs/security_groups_output.json):SecurityGroups.0.GroupId}
       subnetIds:
-        - ${file(../subnets/subnets_output.json):Subnets.0.VpcId}
-        - ${file(../subnets/subnets_output.json):Subnets.1.VpcId}
+        - ${file(../json_outputs/subnets_output.json):Subnets.0.VpcId}
+        - ${file(../json_outputs/subnets_output.json):Subnets.1.VpcId}
   runtime: python3.7
   region: eu-west-2
   package:
