@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 cd subnets
 ls
-cat subnets.json
+cat subnets_output.json
 cd ../
 cd deploy-repository
 
