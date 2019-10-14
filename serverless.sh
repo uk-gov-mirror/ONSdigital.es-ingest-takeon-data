@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
-ls
 cd deploy-repository
+
 echo Packaging serverless bundle...
 serverless package --package pkg
-find ./pkg
+mv pkg ../
+cd ../
+ls
+ls subnets
 serverless deploy --verbose;
