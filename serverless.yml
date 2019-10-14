@@ -4,7 +4,7 @@ provider:
   name: aws
   vpc:
       securityGroupIds:
-        - sg-0c9eb46a0f8b6d258
+        - ${file(../subnets/security_groups_output.json):SecurityGroups.0.GroupId}
       subnetIds:
         - ${file(../subnets/subnets_output.json):Subnets.0.VpcId}
         - ${file(../subnets/subnets_output.json):Subnets.1.VpcId}
