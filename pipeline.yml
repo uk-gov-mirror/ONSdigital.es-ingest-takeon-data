@@ -144,6 +144,7 @@ jobs:
               - -ec
               - |
                 aws ec2 describe-subnets --filters Name=tag:Name,Values=results-tf-sub-public-\* --subnet-ids --output json > subnets/subnets_output.json
+                aws ec2 describe-security-groups --filters Name=tag:Name,Values=results-tf-sub-public-\* --subnet-ids --output json > subnets/security_groups_output.json
           outputs:
             - name: subnets
 

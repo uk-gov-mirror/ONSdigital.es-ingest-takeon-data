@@ -3,6 +3,8 @@ cd subnets
 cat subnets_output.json
 
 cd ../
+ls
+pwd
 cd deploy-repository
 
 echo Packaging serverless bundle...

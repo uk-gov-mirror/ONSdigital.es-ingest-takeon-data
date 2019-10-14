@@ -6,8 +6,8 @@ provider:
       securityGroupIds:
         - sg-0c9eb46a0f8b6d258
       subnetIds:
-        - ${file(../subnets/subnets_output.json):Subnets:0:VpcId}
-        - ${file(../subnets/subnets_output.json):Subnets:1:VpcId}
+        - ${file(../subnets/subnets_output.json)Subnets:0:VpcId}
+        - ${file(../subnets/subnets_output.json)Subnets:1:VpcId}
   runtime: python3.7
   region: eu-west-2
   package:
