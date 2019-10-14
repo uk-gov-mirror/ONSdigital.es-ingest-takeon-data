@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 cd subnets
-cat subnets_output.json
+cat security_groups_output.json
 
-cd ../
-ls
-pwd
 cd deploy-repository
 
 echo Packaging serverless bundle...
