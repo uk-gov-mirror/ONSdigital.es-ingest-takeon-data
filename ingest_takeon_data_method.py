@@ -6,7 +6,8 @@ import marshmallow
 
 class InputSchema(marshmallow.Schema):
     """
-    Scheme to ensure that environment variables are present and in the correct format.
+    Schema to ensure that environment variables are present and in the correct format.
+    These vairables are expected by the method, and it will fail to run if not provided.
     :return: None
     """
     period = marshmallow.fields.Str(required=True)
@@ -18,7 +19,7 @@ def lambda_handler(event, context):
     in the results pipeline, and send it to the Results S3 bucket for further processing.
     :param event: Event object
     :param context: Context object
-    :return: Success - True/False & Checkpoint
+    :return: JSON String - {"success": boolean, "checkpoint"/"error": integer/string}
     """
     current_module = "Results Data Ingest - Method"
     error_message = ""
