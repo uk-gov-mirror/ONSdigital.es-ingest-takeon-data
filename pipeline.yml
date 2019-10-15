@@ -1,19 +1,39 @@
 ---
+resource_types:
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: teliaoss/github-pr-resource
+
 resources:
-  - name: GIT-repository
+  - name: repository
+    type: pull-request
+    check_every: 24h
+    webhook_token: ((webhook_token-concourse))
+    icon: github-circle
+    source:
+      repository: ONSdigital/es-ingest-takeon-data
+      access_token: ((git_access_token))
+
+  - name: deploy-repository
     type: git
+    check_every: 24h
+    icon: github-circle
+    webhook_token: ((webhook_token-concourse))
     source:
       uri: https://github.com/ONSdigital/es-ingest-takeon-data.git
       branch: master
 
-  - name: Python-base
+  - name: base-python-image
     type: docker-image
+    icon: language-python
     source:
       repository: python
       tag: 3.7-slim
 
-  - name: Python-container
+  - name: ecr-image-upload
     type: docker-image
+    icon: docker
     source:
       repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
       aws_access_key_id: ((ecr-svcaccount.api-key))
@@ -23,53 +43,86 @@ jobs:
   - name: installing-dependencies
     serial: true
     plan:
-      - get: GIT-repository
+
+      - get: repository
         trigger: true
-      - get: Python-base
+
+      - get: base-python-image
         params:
           save: true
-      - put: Python-container
-        params:
-          load_base: Python-base
-          build: GIT-repository
-      - task: run
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
-              aws_access_key_id: ((ecr-svcaccount.api-key))
-              aws_secret_access_key: ((ecr-svcaccount.api-secret))
-          inputs:
-            - name: GIT-repository
-          run:
-            path: GIT-repository/install-dependencies.sh
 
-  - name: linting-and-tests
+      - put: ecr-image-upload
+        params:
+          load_base: base-python-image
+          build: repository
+
+  - name: linting-&-tests
     plan:
-      - get: GIT-repository
+
+      - get: repository
         trigger: true
         passed: [installing-dependencies]
-      - task: aws-tests
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
-              aws_access_key_id: ((ecr-svcaccount.api-key))
-              aws_secret_access_key: ((ecr-svcaccount.api-secret))
-          inputs:
-            - name: GIT-repository
-          run:
-            path: GIT-repository/aws-test.sh
+        version: every
+
+      - put: repository
+        params:
+          path: repository
+          status: success
+
+      - in_parallel:
+          - task: aws-tests
+            config:
+              platform: linux
+              image_resource:
+                type: docker-image
+                source:
+                  repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+                  aws_access_key_id: ((ecr-svcaccount.api-key))
+                  aws_secret_access_key: ((ecr-svcaccount.api-secret))
+              inputs:
+                - name: repository
+              run:
+                path: sh
+                args:
+                  - -exc
+                  - |
+                    cd repository
+                    PYTHONPATH=$(pwd)/repository pytest
+            on_failure:
+              put: repository
+              params:
+                path: repository
+                status: failure
+                description: Failing tests are present
+
+          - task: flake8
+            config:
+              platform: linux
+              image_resource:
+                type: docker-image
+                source:
+                  repository: 014669633018.dkr.ecr.eu-west-2.amazonaws.com/results-cicd
+                  aws_access_key_id: ((ecr-svcaccount.api-key))
+                  aws_secret_access_key: ((ecr-svcaccount.api-secret))
+              inputs:
+                - name: repository
+              run:
+                path: sh
+                args:
+                  - -exc
+                  - |
+                    flake8 $(pwd)/repository
+            on_failure:
+              put: repository
+              params:
+                path: repository
+                status: failure
+                description: Code standards are not met
 
   - name: serverless-deploy
     plan:
-      - get: GIT-repository
+      - get: deploy-repository
         trigger: true
-        passed: [linting-and-tests]
       - task: serverless-aws
         config:
           platform: linux
@@ -84,6 +137,6 @@ jobs:
             AWS_SECRET_ACCESS_KEY: ((serverless-access-key.AWS_SECRET_ACCESS_KEY))
             SLS_DEBUG: 1
           inputs:
-            - name: GIT-repository
+            - name: deploy-repository
           run:
-            path: GIT-repository/serverless.sh
+            path: deploy-repository/serverless.sh
