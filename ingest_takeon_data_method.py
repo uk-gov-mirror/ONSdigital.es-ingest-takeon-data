@@ -6,7 +6,8 @@ import marshmallow
 
 class InputSchema(marshmallow.Schema):
     """
-    Scheme to ensure that environment variables are present and in the correct format.
+    Schema to ensure that environment variables are present and in the correct format.
+    These vairables are expected by the method, and it will fail to run if not provided.
     :return: None
     """
     period = marshmallow.fields.Str(required=True)
@@ -18,12 +19,12 @@ def lambda_handler(event, context):
     in the results pipeline, and send it to the Results S3 bucket for further processing.
     :param event: Event object
     :param context: Context object
-    :return: Success - True/False & Checkpoint
+    :return: JSON String - {"success": boolean, "checkpoint"/"error": integer/string}
     """
-    current_module = "BMI Results Data Ingest - Method"
+    current_module = "Results Data Ingest - Method"
     error_message = ""
     log_message = ""
-    logger = logging.getLogger("Results Data Ingest - Method")
+    logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
     try:
         logger.info("Retrieving data from take on file...")
@@ -31,7 +32,6 @@ def lambda_handler(event, context):
         config, errors = InputSchema().load(os.environ)
 
         period = config['period']
-        question_codes = ['601', '602', '603', '604', '605', '606', '607']
         question_labels = {
             '601': 'Q601_asphalting_sand',
             '602': 'Q602_building_soft_sand',
@@ -57,12 +57,12 @@ def lambda_handler(event, context):
                         out_contrib['name'] = contributor['enterprisename']
 
                         # prepopulate default question answers
-                        for expected_question in question_codes:
+                        for expected_question in question_labels.keys():
                             out_contrib[question_labels[expected_question]] = ""
 
                         # where contributors provided an aswer, use it instead
                         for question in contributor['responsesByReferenceAndPeriodAndSurvey']['nodes']:  # noqa: E501
-                            if question['questioncode'] in question_codes:
+                            if question['questioncode'] in question_labels.keys():
                                 out_contrib[question_labels[question['questioncode']]]\
                                     = question['response']
 

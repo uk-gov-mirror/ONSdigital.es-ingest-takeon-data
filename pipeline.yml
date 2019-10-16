@@ -22,7 +22,7 @@ resources:
     webhook_token: ((webhook_token-concourse))
     source:
       uri: https://github.com/ONSdigital/es-ingest-takeon-data.git
-      branch: lu_3857_vpc_creds
+      branch: master
 
   - name: base-python-image
     type: docker-image
@@ -40,7 +40,7 @@ resources:
       aws_secret_access_key: ((ecr-svcaccount.api-secret))
 
 jobs:
-  - name: installing dependencies
+  - name: installing-dependencies
     serial: true
     plan:
 
@@ -56,12 +56,12 @@ jobs:
           load_base: base-python-image
           build: repository
 
-  - name: linting & tests
+  - name: linting-&-tests
     plan:
 
       - get: repository
         trigger: true
-        passed: [installing dependencies]
+        passed: [installing-dependencies]
         version: every
 
       - put: repository
@@ -166,4 +166,3 @@ jobs:
             - name: json_outputs
           run:
             path: deploy-repository/serverless.sh
-            
