@@ -123,6 +123,31 @@ jobs:
     plan:
       - get: deploy-repository
         trigger: true
+      - task: obtaining-vpc-details
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: mesosphere/aws-cli
+          params:
+            AWS_ACCESS_KEY_ID: ((serverless-access-key.AWS_ACCESS_KEY_ID))
+            AWS_SECRET_ACCESS_KEY: ((serverless-access-key.AWS_SECRET_ACCESS_KEY))
+            AWS_DEFAULT_REGION: eu-west-2
+            SLS_DEBUG: 1
+            TERM: xterm
+          inputs:
+            - name: deploy-repository
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                aws ec2 describe-subnets --filters Name=tag:Name,Values=results-tf-sub-private-\* --subnet-ids --output json > json_outputs/subnets_output.json
+                aws ec2 describe-security-groups --filters Name=tag:Name,Values=results-tf-sg-private --output json > json_outputs/security_groups_output.json
+          outputs:
+            - name: json_outputs
+
       - task: serverless-aws
         config:
           platform: linux
@@ -138,5 +163,6 @@ jobs:
             SLS_DEBUG: 1
           inputs:
             - name: deploy-repository
+            - name: json_outputs
           run:
             path: deploy-repository/serverless.sh
