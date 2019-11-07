@@ -35,7 +35,7 @@ functions:
       app: results
     environment:
       takeon_bucket_name: takeon.validationdb.export.bucket
-      results_bucket_name: results-tf-vpc-s3
+      results_bucket_name: results-s3-bucket
       in_file_name: takeon-data-export-2019-09-23-13:23:38
       out_file_name: ingest_out.json
       function_name: es-ingest-takeon-data-method
