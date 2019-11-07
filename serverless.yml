@@ -2,7 +2,7 @@
 service: es-ingest-takeon-data
 provider:
   name: aws
-  role: arn:aws:iam::014669633018:role/lambda_invoke_lambda
+  role: arn:aws:iam::${self:custom.accountId}:role/lambda_invoke_lambda
   vpc:
       securityGroupIds:
         - ${file(../json_outputs/security_groups_output.json):SecurityGroups.0.GroupId}
@@ -14,6 +14,10 @@ provider:
   package:
     individually: true
 
+custom:
+  accounts: ${ssm:/aws/reference/secretsmanager/results-aws-accounts~true}
+  accountId: ${self:custom.accounts.account-id}
+
 functions:
   deploy-wrangler:
     name: es-ingest-takeon-data-wrangler
@@ -24,21 +28,21 @@ functions:
       exclude:
         - ./**
     layers:
-      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
-      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
-      - arn:aws:lambda:eu-west-2:014669633018:layer:dev-es-commonfunctions:12
+      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_marshmallow:2
+      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:dev-es-commonfunctions:12
     tags:
       app: results
     environment:
       takeon_bucket_name: takeon.validationdb.export.bucket
       results_bucket_name: results-tf-vpc-s3
       in_file_name: takeon-data-export-2019-09-23-13:23:38
-      out_file_name: ingest-out.json
+      out_file_name: ingest_out.json
       function_name: es-ingest-takeon-data-method
       checkpoint: 0
-      queue_url: https://sqs.eu-west-2.amazonaws.com/014669633018/BMI_Results.fifo
+      queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
       sqs_messageid_name: ingest-takeon-data
-      sns_topic_arn: arn:aws:sns:eu-west-2:014669633018:BMIResults
+      sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
   deploy-method:
     name: es-ingest-takeon-data-method
@@ -49,8 +53,8 @@ functions:
       exclude:
         - ./**
     layers:
-      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_layer:10
-      - arn:aws:lambda:eu-west-2:014669633018:layer:es_python_marshmallow:2
+      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_layer:10
+      - arn:aws:lambda:eu-west-2:${self:custom.accountId}:layer:es_python_marshmallow:2
     tags:
       app: results
     environment:
