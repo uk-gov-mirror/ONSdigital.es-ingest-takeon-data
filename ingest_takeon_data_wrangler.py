@@ -44,7 +44,8 @@ def lambda_handler(event, context):
         lambda_client = boto3.client('lambda', region_name='eu-west-2')
 
         # ENV vars
-        config, errors = InputSchema().load(os.environ)
+        schema = InputSchema()
+        config, errors = schema.load(os.environ)
         if errors:
             raise ValueError(f"Error validating environment parameters: {errors}")
 
