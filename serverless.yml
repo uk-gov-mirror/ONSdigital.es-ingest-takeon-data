@@ -21,7 +21,7 @@ custom:
 functions:
   deploy-wrangler:
     name: es-ingest-takeon-data-wrangler
-    handler: ingest_takeon_data.lambda_handler
+    handler: ingest_takeon_data_wrangler.lambda_handler
     package:
       include:
         - ingest_takeon_data.py
@@ -34,15 +34,15 @@ functions:
     tags:
       app: results
     environment:
-      takeon_bucket_name: takeon.validationdb.export.bucket
-      results_bucket_name: results-s3-bucket
-      in_file_name: takeon-data-export-2019-09-23-13:23:38
-      out_file_name: ingest_out.json
-      function_name: es-ingest-takeon-data-method
       checkpoint: 0
+      in_file_name: takeon-data-export-2019-09-23-13:23:38
+      method_name: es-ingest-takeon-data-method
+      out_file_name: ingest_out.json
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
-      sqs_messageid_name: ingest-takeon-data-out
+      results_bucket_name: results-s3-bucket
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
+      sqs_messageid_name: ingest-takeon-data-out
+      takeon_bucket_name: takeon.validationdb.export.bucket
 
   deploy-method:
     name: es-ingest-takeon-data-method
