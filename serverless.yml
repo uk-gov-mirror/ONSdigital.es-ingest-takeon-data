@@ -41,7 +41,7 @@ functions:
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
       results_bucket_name: results-s3-bucket
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
-      sqs_messageid_name: ingest-takeon-data-out
+      sqs_message_group_id: ingest-takeon-data-out
       takeon_bucket_name: takeon.validationdb.export.bucket
 
   deploy-method:

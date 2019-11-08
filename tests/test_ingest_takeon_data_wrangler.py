@@ -19,7 +19,7 @@ class TestIngestTakeOnData():
                 "period": "201809",
                 "checkpoint": "0",
                 "queue_url": "mock-queue-url",
-                "sqs_messageid_name": "mock-messageid",
+                "sqs_message_group_id": "mock-messageid",
                 "sns_topic_arn": "mock-topic-arn",
                 "out_file_name": "outie"
             },
