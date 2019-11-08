@@ -72,7 +72,7 @@ def lambda_handler(event, context):
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
-        funk.send_sns_message(checkpoint, sns_topic_arn, "Ingest has succeeded.")
+        funk.send_sns_message(checkpoint, sns_topic_arn, "Ingest.")
 
     except ClientError as e:
         error_message = ("AWS Error in ("
