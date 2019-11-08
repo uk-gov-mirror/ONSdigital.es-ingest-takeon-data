@@ -41,15 +41,15 @@ functions:
       function_name: es-ingest-takeon-data-method
       checkpoint: 0
       queue_url: https://sqs.eu-west-2.amazonaws.com/${self:custom.accountId}/BMI_Results.fifo
-      sqs_messageid_name: ingest-takeon-data
+      sqs_messageid_name: ingest-takeon-data-out
       sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
 
   deploy-method:
     name: es-ingest-takeon-data-method
-    handler: ingest_takeon_data-method.lambda_handler
+    handler: ingest_takeon_data_method.lambda_handler
     package:
       include:
-        - ingest_takeon_data-method.py
+        - ingest_takeon_data_method.py
       exclude:
         - ./**
     layers:
