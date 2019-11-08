@@ -24,7 +24,7 @@ functions:
     handler: ingest_takeon_data_wrangler.lambda_handler
     package:
       include:
-        - ingest_takeon_data.py
+        - ingest_takeon_data_wrangler.py
       exclude:
         - ./**
     layers:
