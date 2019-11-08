@@ -72,13 +72,31 @@ class TestIngestTakeOnData():
             assert """General exception""" in returned_value["error"]
 
     def test_missing_env_var(self):
-        ingest_takeon_data_wrangler.os.environ.pop("in_file_name")
-        returned_value = ingest_takeon_data_wrangler.lambda_handler(
-            None, {"aws_request_id": "666"}
-        )
-        ingest_takeon_data_wrangler.os.environ["in_file_name"] = "mock-file"
 
-        assert """Key Error""" in returned_value["error"]
+        """
+        Testing the marshmallow in the wrangler raises an exception.
+        :return: None.
+        """
+        with mock.patch.dict(
+                ingest_takeon_data_wrangler.os.environ,
+                {
+                    "arn": "mock:arn",
+                    "checkpoint": "mock-checkpoint",
+                    "method_name": "mock-name",
+                    "sqs_message_group_id": "mock-group-id",
+                    "queue_url": "queue_url",
+                },
+        ):
+            # Removing the method_name to allow for test of missing parameter
+            ingest_takeon_data_wrangler.os.environ.pop("method_name")
+            response = ingest_takeon_data_wrangler.lambda_handler(
+                {"RuntimeVariables": {"checkpoint": 123, "period": "201809"}},
+                {"aws_request_id": "666"},
+            )
+
+            assert response["error"].__contains__(
+                """Error validating environment parameters:"""
+            )
 
     def test_empty_env_var(self):
         ingest_takeon_data_wrangler.os.environ["in_file_name"] = ""
