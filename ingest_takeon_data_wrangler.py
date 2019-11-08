@@ -18,10 +18,10 @@ class InputSchema(Schema):
     in_file_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
     results_bucket_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
+    sqs_queue_url = fields.Str(required=True)
     takeon_bucket_name = fields.Str(required=True)
 
 
@@ -53,10 +53,10 @@ def lambda_handler(event, context):
         in_file_name = config['in_file_name']
         method_name = config['method_name']
         out_file_name = config['out_file_name']
-        queue_url = config['queue_url']
         results_bucket_name = config['results_bucket_name']
         sns_topic_arn = config['sns_topic_arn']
         sqs_message_group_id = config['sqs_message_group_id']
+        sqs_queue_url = config['sqs_queue_url']
         takeon_bucket_name = config['takeon_bucket_name']
 
         logger.info("Validated environment parameters.")
@@ -72,7 +72,7 @@ def lambda_handler(event, context):
         output_json = json.loads(method_return.get('Payload').read().decode("utf-8"))
 
         funk.save_data(results_bucket_name, out_file_name,
-                       output_json, queue_url, sqs_message_group_id)
+                       output_json, sqs_queue_url, sqs_message_group_id)
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 

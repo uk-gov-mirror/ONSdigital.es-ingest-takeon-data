@@ -18,7 +18,7 @@ class TestIngestTakeOnData():
                 "method_name": "mock-function",
                 "period": "201809",
                 "checkpoint": "0",
-                "queue_url": "mock-queue-url",
+                "sqs_queue_url": "mock-queue-url",
                 "sqs_message_group_id": "mock-messageid",
                 "sns_topic_arn": "mock-topic-arn",
                 "out_file_name": "outie"
@@ -84,7 +84,7 @@ class TestIngestTakeOnData():
                     "checkpoint": "mock-checkpoint",
                     "method_name": "mock-name",
                     "sqs_message_group_id": "mock-group-id",
-                    "queue_url": "queue_url",
+                    "sqs_queue_url": "sqs_queue_url",
                 },
         ):
             # Removing the method_name to allow for test of missing parameter
