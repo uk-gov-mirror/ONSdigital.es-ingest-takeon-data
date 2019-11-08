@@ -45,6 +45,9 @@ def lambda_handler(event, context):
 
         # ENV vars
         config, errors = InputSchema().load(os.environ)
+        if errors:
+            raise ValueError(f"Error validating environment parameters: {errors}")
+
         checkpoint = config['checkpoint']
         in_file_name = config['in_file_name']
         method_name = config['method_name']
