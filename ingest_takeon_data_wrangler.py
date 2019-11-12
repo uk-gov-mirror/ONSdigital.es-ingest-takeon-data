@@ -14,15 +14,15 @@ class InputSchema(Schema):
     These vairables are expected by the method, and it will fail to run if not provided.
     :return: None
     """
-    takeon_bucket_name = fields.Str(required=True)
-    results_bucket_name = fields.Str(required=True)
-    function_name = fields.Str(required=True)
     checkpoint = fields.Str(required=True)
-    sns_topic_arn = fields.Str(required=True)
     in_file_name = fields.Str(required=True)
+    method_name = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
-    sqs_messageid_name = fields.Str(required=True)
+    results_bucket_name = fields.Str(required=True)
+    sns_topic_arn = fields.Str(required=True)
+    sqs_message_group_id = fields.Str(required=True)
+    sqs_queue_url = fields.Str(required=True)
+    takeon_bucket_name = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -44,16 +44,20 @@ def lambda_handler(event, context):
         lambda_client = boto3.client('lambda', region_name='eu-west-2')
 
         # ENV vars
-        config, errors = InputSchema().load(os.environ)
-        takeon_bucket_name = config['takeon_bucket_name']
-        results_bucket_name = config['results_bucket_name']
-        in_file_name = config['in_file_name']
-        function_name = config['function_name']
+        schema = InputSchema()
+        config, errors = schema.load(os.environ)
+        if errors:
+            raise ValueError(f"Error validating environment parameters: {errors}")
+
         checkpoint = config['checkpoint']
+        in_file_name = config['in_file_name']
+        method_name = config['method_name']
+        out_file_name = config['out_file_name']
+        results_bucket_name = config['results_bucket_name']
         sns_topic_arn = config['sns_topic_arn']
-        out_file_name = config['out_file_name']  # "test_results_ingest_output.json"
-        queue_url = config['queue_url']
-        sqs_messageid_name = config['sqs_messageid_name']
+        sqs_message_group_id = config['sqs_message_group_id']
+        sqs_queue_url = config['sqs_queue_url']
+        takeon_bucket_name = config['takeon_bucket_name']
 
         logger.info("Validated environment parameters.")
 
@@ -62,24 +66,24 @@ def lambda_handler(event, context):
         logger.info("Read from S3.")
 
         method_return = lambda_client.invoke(
-         FunctionName=function_name, Payload=input_file
+         FunctionName=method_name, Payload=input_file
         )
 
-        output_json = method_return.get('Payload').read().decode("utf-8")
+        output_json = json.loads(method_return.get('Payload').read().decode("utf-8"))
 
         funk.save_data(results_bucket_name, out_file_name,
-                       json.loads(output_json), queue_url, sqs_messageid_name)
+                       output_json, sqs_queue_url, sqs_message_group_id)
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
-        funk.send_sns_message(checkpoint, sns_topic_arn, "Ingest has succeeded.")
+        funk.send_sns_message(checkpoint, sns_topic_arn, "Ingest.")
 
     except ClientError as e:
         error_message = ("AWS Error in ("
                          + str(e.response["Error"]["Code"]) + ") "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -87,7 +91,7 @@ def lambda_handler(event, context):
         error_message = ("Key Error in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -95,7 +99,7 @@ def lambda_handler(event, context):
         error_message = ("Incomplete Lambda response encountered in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -103,7 +107,7 @@ def lambda_handler(event, context):
         error_message = ("Blank or empty environment variable in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -112,7 +116,7 @@ def lambda_handler(event, context):
                          + current_module + " ("
                          + str(type(e)) + ") |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context["aws_request_id"]))
+                         + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
