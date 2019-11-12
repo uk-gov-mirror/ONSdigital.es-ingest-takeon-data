@@ -4,6 +4,13 @@ import unittest.mock as mock
 import ingest_takeon_data_method
 
 
+class MockContext():
+    aws_request_id = 666
+
+
+context_object = MockContext()
+
+
 class TestIngestTakeOnData():
     @classmethod
     def setup_class(cls):
@@ -38,7 +45,7 @@ class TestIngestTakeOnData():
             with mock.patch("ingest_takeon_data_method.InputSchema.load") as mocked:
                 mocked.side_effect = Exception("General exception")
                 response = ingest_takeon_data_method.lambda_handler(
-                    input_data, {"aws_request_id": "666"}
+                    input_data, context_object
                 )
 
                 assert "success" in response
@@ -50,7 +57,7 @@ class TestIngestTakeOnData():
             input_data = json.load(file)
             ingest_takeon_data_method.os.environ.pop("period")
             returned_value = ingest_takeon_data_method.lambda_handler(
-                json.dumps(input_data), None
+                json.dumps(input_data), context_object
             )
             ingest_takeon_data_method.os.environ["period"] = "201809"
 

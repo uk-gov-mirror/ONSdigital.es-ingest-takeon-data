@@ -6,6 +6,13 @@ from botocore.response import StreamingBody
 import ingest_takeon_data_wrangler
 
 
+class MockContext():
+    aws_request_id = 666
+
+
+context_object = MockContext()
+
+
 class TestIngestTakeOnData():
     @classmethod
     def setup_class(cls):
@@ -47,7 +54,7 @@ class TestIngestTakeOnData():
                 }
 
                 returned_value = ingest_takeon_data_wrangler.lambda_handler(
-                    None, {"aws_request_id": "666"}
+                    None, context_object
                 )
 
                 assert "success" in returned_value
@@ -64,7 +71,7 @@ class TestIngestTakeOnData():
             mock_s3_return.side_effect = Exception("General exception")
 
             returned_value = ingest_takeon_data_wrangler.lambda_handler(
-                None, {"aws_request_id": "666"}
+                None, context_object
             )
 
             assert "success" in returned_value
@@ -91,7 +98,7 @@ class TestIngestTakeOnData():
             ingest_takeon_data_wrangler.os.environ.pop("method_name")
             response = ingest_takeon_data_wrangler.lambda_handler(
                 {"RuntimeVariables": {"checkpoint": 123, "period": "201809"}},
-                {"aws_request_id": "666"},
+                context_object,
             )
 
             assert response["error"].__contains__(
@@ -101,7 +108,7 @@ class TestIngestTakeOnData():
     def test_empty_env_var(self):
         ingest_takeon_data_wrangler.os.environ["in_file_name"] = ""
         returned_value = ingest_takeon_data_wrangler.lambda_handler(
-            None, {"aws_request_id": "666"}
+            None, context_object
         )
         ingest_takeon_data_wrangler.os.environ["in_file_name"] = "mock-file"
 
@@ -121,7 +128,7 @@ class TestIngestTakeOnData():
                                                             StreamingBody(file, 2)}
 
             returned_value = ingest_takeon_data_wrangler.lambda_handler(
-                None, {"aws_request_id": "666"}
+                None, context_object
             )
 
         assert(returned_value['error'].__contains__("""Incomplete Lambda response"""))
@@ -131,7 +138,7 @@ class TestIngestTakeOnData():
     def test_aws_error(self, mock_client, mock_sns):
 
         returned_value = ingest_takeon_data_wrangler.lambda_handler(
-            None, {"aws_request_id": "666"}
+            None, context_object
         )
 
         assert("AWS Error" in returned_value['error'])
