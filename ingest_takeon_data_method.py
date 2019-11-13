@@ -39,7 +39,8 @@ def lambda_handler(event, context):
             '604': 'Q604_bituminous_gravel',
             '605': 'Q605_concreting_gravel',
             '606': 'Q606_other_gravel',
-            '607': 'Q607_constructional_fill'
+            '607': 'Q607_constructional_fill',
+            '608': 'Q608_totals'
         }
 
         input_json = event
@@ -55,6 +56,7 @@ def lambda_handler(event, context):
                         out_contrib['gor_code'] = contributor['region']
                         out_contrib['enterprise_ref'] = contributor['enterprisereference']
                         out_contrib['name'] = contributor['enterprisename']
+                        out_contrib['response_type'] = contributor['response_type']
 
                         # prepopulate default question answers
                         for expected_question in question_labels.keys():
