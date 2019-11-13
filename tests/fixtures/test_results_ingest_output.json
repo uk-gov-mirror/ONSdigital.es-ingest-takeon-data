@@ -3,6 +3,7 @@
         "period": "201809",
         "responder_id": "77700000020",
         "gor_code": "AA",
+        "response_type": 1,
         "enterprise_ref": "9900247365",
         "name": "An enterprise name",
         "Q601_asphalting_sand": "665788841",
@@ -12,12 +13,14 @@
         "Q605_concreting_gravel": "46870750",
         "Q606_other_gravel": "299150728",
         "Q607_constructional_fill": "700635557",
+        "Q608_total": "620019808",
         "land_or_marine": "L"
     },
     {
         "period": "201809",
         "responder_id": "77700000058",
         "gor_code": "AA",
+        "response_type": 1,
         "enterprise_ref": "9900097810",
         "name": "An enterprise name",
         "Q601_asphalting_sand": "951840547",
@@ -27,12 +30,14 @@
         "Q605_concreting_gravel": "687897094",
         "Q606_other_gravel": "212627234",
         "Q607_constructional_fill": "917439796",
+        "Q608_total": "732132073",
         "land_or_marine": "L"
     },
     {
         "period": "201809",
         "responder_id": "77700000010",
         "gor_code": "AA",
+        "response_type": 3,
         "enterprise_ref": "9900416922",
         "name": "An enterprise name",
         "Q601_asphalting_sand": "",
@@ -42,12 +47,14 @@
         "Q605_concreting_gravel": "",
         "Q606_other_gravel": "",
         "Q607_constructional_fill": "",
+        "Q608_total": "",
         "land_or_marine": "M"
     },
     {
         "period": "201809",
         "responder_id": "77700000043",
         "gor_code": "AA",
+        "response_type": 3,
         "enterprise_ref": "9900232536",
         "name": "An enterprise name",
         "Q601_asphalting_sand": "",
@@ -57,12 +64,14 @@
         "Q605_concreting_gravel": "",
         "Q606_other_gravel": "",
         "Q607_constructional_fill": "",
+        "Q608_total": "",
         "land_or_marine": "M"
     },
     {
         "period": "201809",
         "responder_id": "77700000061",
         "gor_code": "AA",
+        "response_type": 3,
         "enterprise_ref": "9900767149",
         "name": "An enterprise name",
         "Q601_asphalting_sand": "",
@@ -72,6 +81,7 @@
         "Q605_concreting_gravel": "",
         "Q606_other_gravel": "",
         "Q607_constructional_fill": "",
+        "Q608_total": "",
         "land_or_marine": "M"
     }
 ]

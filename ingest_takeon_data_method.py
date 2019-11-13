@@ -40,7 +40,7 @@ def lambda_handler(event, context):
             '605': 'Q605_concreting_gravel',
             '606': 'Q606_other_gravel',
             '607': 'Q607_constructional_fill',
-            '608': 'Q608_totals'
+            '608': 'Q608_total'
         }
 
         input_json = event
@@ -54,9 +54,10 @@ def lambda_handler(event, context):
                         out_contrib['period'] = contributor['period']
                         out_contrib['responder_id'] = contributor['reference']
                         out_contrib['gor_code'] = contributor['region']
+                        out_contrib['response_type'] = contributor['formid']
+                        # Not The Right Column Update When Known      ^
                         out_contrib['enterprise_ref'] = contributor['enterprisereference']
                         out_contrib['name'] = contributor['enterprisename']
-                        out_contrib['response_type'] = contributor['response_type']
 
                         # prepopulate default question answers
                         for expected_question in question_labels.keys():
