@@ -74,6 +74,12 @@ def lambda_handler(event, context):
                                     = question['response']
 
                         # survey marker is used instead of the survey code
+                        # -------------------------------------------- #
+                        # Do We Need To Do This Or Should Use
+                        # The Survey Code Throughout Our Processes.
+                        # This Would Allow Us To Make Other Modules
+                        # More Generic.
+                        # -------------------------------------------- #
                         if contributor['survey'] == "066":
                             out_contrib['land_or_marine'] = "L"
                         elif contributor['survey'] == "076":
