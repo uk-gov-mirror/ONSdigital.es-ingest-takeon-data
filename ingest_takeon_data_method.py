@@ -39,7 +39,8 @@ def lambda_handler(event, context):
             '604': 'Q604_bituminous_gravel',
             '605': 'Q605_concreting_gravel',
             '606': 'Q606_other_gravel',
-            '607': 'Q607_constructional_fill'
+            '607': 'Q607_constructional_fill',
+            '608': 'Q608_total'
         }
 
         input_json = event
@@ -53,6 +54,12 @@ def lambda_handler(event, context):
                         out_contrib['period'] = contributor['period']
                         out_contrib['responder_id'] = contributor['reference']
                         out_contrib['gor_code'] = contributor['region']
+                        # Not Known If Below Is Correct Column.
+                        # Temp Transform To Use As Response Type.
+                        if contributor['formid'] == 1:
+                            out_contrib['response_type'] = 2
+                        else:
+                            out_contrib['response_type'] = 1
                         out_contrib['enterprise_ref'] = contributor['enterprisereference']
                         out_contrib['name'] = contributor['enterprisename']
 

@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 
@@ -69,7 +68,7 @@ def lambda_handler(event, context):
          FunctionName=method_name, Payload=input_file
         )
 
-        output_json = json.loads(method_return.get('Payload').read().decode("utf-8"))
+        output_json = method_return.get('Payload').read().decode("utf-8")
 
         funk.save_data(results_bucket_name, out_file_name,
                        output_json, sqs_queue_url, sqs_message_group_id)
@@ -126,4 +125,4 @@ def lambda_handler(event, context):
             return {"success": False, "error": error_message}
         else:
             logger.info("Successfully completed module: " + current_module)
-            return {"success": True, "checkpoint": 0}
+            return {"success": True, "checkpoint": checkpoint}
