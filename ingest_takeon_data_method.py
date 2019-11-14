@@ -54,8 +54,12 @@ def lambda_handler(event, context):
                         out_contrib['period'] = contributor['period']
                         out_contrib['responder_id'] = contributor['reference']
                         out_contrib['gor_code'] = contributor['region']
-                        out_contrib['response_type'] = contributor['formid']
-                        # Not The Right Column Update When Known      ^
+                        # Not Known If Below Is Correct Column.
+                        # Temp Transform To Use As Response Type.
+                        if contributor['formid'] == 1:
+                            out_contrib['response_type'] = 2
+                        else:
+                            out_contrib['response_type'] = 1
                         out_contrib['enterprise_ref'] = contributor['enterprisereference']
                         out_contrib['name'] = contributor['enterprisename']
 
