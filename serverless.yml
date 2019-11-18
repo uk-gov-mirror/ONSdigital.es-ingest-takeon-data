@@ -2,6 +2,8 @@
 service: es-ingest-takeon-data
 provider:
   name: aws
+  deploymentBucket:
+    name: com.serverless.${self:provider.region}.results.ons.deploys
   role: arn:aws:iam::${self:custom.accountId}:role/lambda_invoke_lambda
   vpc:
       securityGroupIds:
@@ -13,6 +15,10 @@ provider:
   region: eu-west-2
   package:
     individually: true
+  memorySize: 512
+  timeout: 10
+  tracing:
+    lambda: true
 
 custom:
   accounts: ${ssm:/aws/reference/secretsmanager/results-aws-accounts~true}
