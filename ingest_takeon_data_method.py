@@ -65,13 +65,13 @@ def lambda_handler(event, context):
 
                         # prepopulate default question answers
                         for expected_question in question_labels.keys():
-                            out_contrib[question_labels[expected_question]] = ""
+                            out_contrib[question_labels[expected_question]] = 0
 
                         # where contributors provided an aswer, use it instead
                         for question in contributor['responsesByReferenceAndPeriodAndSurvey']['nodes']:  # noqa: E501
                             if question['questioncode'] in question_labels.keys():
                                 out_contrib[question_labels[question['questioncode']]]\
-                                    = question['response']
+                                    = int(question['response'])
 
                         # survey marker is used instead of the survey code
                         # -------------------------------------------- #
