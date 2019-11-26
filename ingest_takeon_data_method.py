@@ -52,7 +52,7 @@ def lambda_handler(event, context):
                         out_contrib = {}
                         # basic contributor information
                         out_contrib['period'] = contributor['period']
-                        out_contrib['responder_id'] = contributor['reference']
+                        out_contrib['responder_id'] = str(contributor['reference'])
                         out_contrib['gor_code'] = contributor['region']
                         # Not Known If Below Is Correct Column.
                         # Temp Transform To Use As Response Type.
@@ -60,7 +60,8 @@ def lambda_handler(event, context):
                             out_contrib['response_type'] = 2
                         else:
                             out_contrib['response_type'] = 1
-                        out_contrib['enterprise_ref'] = contributor['enterprisereference']
+                        out_contrib['enterprise_ref'] = str(
+                            contributor['enterprisereference'])
                         out_contrib['name'] = contributor['enterprisename']
 
                         # prepopulate default question answers

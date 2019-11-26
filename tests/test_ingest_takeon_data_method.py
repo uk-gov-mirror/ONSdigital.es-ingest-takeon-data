@@ -31,7 +31,7 @@ class TestIngestTakeOnData():
         with open("tests/fixtures/takeon-data-export.json") as input_file:
             input_data = json.load(input_file)
             returned_value = ingest_takeon_data_method.lambda_handler(
-                input_data, None
+                input_data, context_object
             )
 
         with open("tests/fixtures/test_results_ingest_output.json") as expected_file:
