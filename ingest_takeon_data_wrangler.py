@@ -69,7 +69,7 @@ def lambda_handler(event, context):
         )
 
         output_json = method_return.get('Payload').read().decode("utf-8")
-        if 'error' in output_json.keys():
+        if str(type(output_json)) != "<class 'str'>":
             raise funk.MethodFailure(output_json['error'])
         funk.save_data(results_bucket_name, out_file_name,
                        output_json, sqs_queue_url, sqs_message_group_id)
