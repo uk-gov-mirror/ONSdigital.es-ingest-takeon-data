@@ -69,7 +69,8 @@ def lambda_handler(event, context):
         )
 
         output_json = method_return.get('Payload').read().decode("utf-8")
-
+        if 'error' in output_json.keys():
+            raise funk.MethodFailure(output_json['error'])
         funk.save_data(results_bucket_name, out_file_name,
                        output_json, sqs_queue_url, sqs_message_group_id)
 
@@ -118,7 +119,9 @@ def lambda_handler(event, context):
                          + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
+    except funk.MethodFailure as e:
+        error_message = e.error_message
+        log_message = "Error in " + method_name + "."
     finally:
         if (len(error_message)) > 0:
             logger.error(log_message)
