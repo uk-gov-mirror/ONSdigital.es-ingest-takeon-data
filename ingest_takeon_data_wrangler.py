@@ -10,7 +10,7 @@ from marshmallow import Schema, fields
 class InputSchema(Schema):
     """
     Schema to ensure that environment variables are present and in the correct format.
-    These vairables are expected by the method, and it will fail to run if not provided.
+    These variables are expected by the method, and it will fail to run if not provided.
     :return: None
     """
     checkpoint = fields.Str(required=True)
