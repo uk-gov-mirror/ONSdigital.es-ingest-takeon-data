@@ -50,7 +50,7 @@ class TestIngestTakeOnData():
             mock_s3_return.return_value = json.dumps(input_data)
             with open("tests/fixtures/test_results_ingest_output.json", "rb") as file:
                 mock_client_object.invoke.return_value = {
-                    "Payload": StreamingBody(file, 2727)
+                    "Payload": StreamingBody(file, 1926)
                 }
 
                 returned_value = ingest_takeon_data_wrangler.lambda_handler(
