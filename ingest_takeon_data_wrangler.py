@@ -10,7 +10,7 @@ from marshmallow import Schema, fields
 class InputSchema(Schema):
     """
     Schema to ensure that environment variables are present and in the correct format.
-    These vairables are expected by the method, and it will fail to run if not provided.
+    These variables are expected by the method, and it will fail to run if not provided.
     :return: None
     """
     checkpoint = fields.Str(required=True)
@@ -69,7 +69,8 @@ def lambda_handler(event, context):
         )
 
         output_json = method_return.get('Payload').read().decode("utf-8")
-
+        if str(type(output_json)) != "<class 'str'>":
+            raise funk.MethodFailure(output_json['error'])
         funk.save_data(results_bucket_name, out_file_name,
                        output_json, sqs_queue_url, sqs_message_group_id)
 
@@ -109,7 +110,9 @@ def lambda_handler(event, context):
                          + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
+    except funk.MethodFailure as e:
+        error_message = e.error_message
+        log_message = "Error in " + method_name + "."
     except Exception as e:
         error_message = ("General Error in "
                          + current_module + " ("
@@ -118,7 +121,6 @@ def lambda_handler(event, context):
                          + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
     finally:
         if (len(error_message)) > 0:
             logger.error(log_message)
