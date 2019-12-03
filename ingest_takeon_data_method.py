@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -89,7 +90,7 @@ def lambda_handler(event, context):
                         output_json.append(out_contrib)
 
         logger.info("Successfully extracted data from take on.")
-        final_output = {"data": output_json}
+        final_output = {"data": json.dumps(output_json)}
 
     except KeyError as e:
         error_message = ("Key Error in "

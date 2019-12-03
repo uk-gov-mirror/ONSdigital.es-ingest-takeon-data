@@ -37,7 +37,7 @@ class TestIngestTakeOnData():
         with open("tests/fixtures/test_results_ingest_output.json") as expected_file:
             expected = expected_file
 
-            assert returned_value["data"] == json.load(expected)
+            assert json.loads(returned_value["data"]) == json.load(expected)
 
     def test_method_general_exception(self):
         with open("tests/fixtures/takeon-data-export.json") as file:
