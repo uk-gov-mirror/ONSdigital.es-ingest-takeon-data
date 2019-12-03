@@ -48,11 +48,10 @@ class TestIngestTakeOnData():
         with open("tests/fixtures/takeon-data-export.json") as file:
             input_data = json.load(file)
             mock_s3_return.return_value = json.dumps(input_data)
-            with open("tests/fixtures/test_results_ingest_output.json", "rb") as file:
-                mock_client_object.invoke.return_value = {
-                    "Payload": StreamingBody(file, 1926)
-                }
-
+            with open("tests/fixtures/test_results_ingest_output.json", "r") as file:
+                mock_client_object.invoke.return_value.get.return_value \
+                    .read.return_value.decode.return_value = \
+                    json.dumps({"data": json.load(file), "success": True})
                 returned_value = ingest_takeon_data_wrangler.lambda_handler(
                     None, context_object
                 )
@@ -147,7 +146,8 @@ class TestIngestTakeOnData():
     @mock.patch("ingest_takeon_data_wrangler.funk.read_from_s3")
     @mock.patch("ingest_takeon_data_wrangler.funk.save_data")
     @mock.patch("ingest_takeon_data_wrangler.funk.send_sns_message")
-    def test_method_fail(self, mock_sns_return, mock_s3_write, mock_s3_return, mock_client):  # noqa: E501
+    def test_method_fail(self, mock_sns_return, mock_s3_write,
+                         mock_s3_return, mock_client):
         mock_client_object = mock.Mock()
         mock_client.return_value = mock_client_object
         with open("tests/fixtures/takeon-data-export.json") as file:
@@ -156,7 +156,7 @@ class TestIngestTakeOnData():
 
             mock_client_object.invoke.return_value.get.return_value \
                 .read.return_value.decode.return_value = \
-                {"error": "This is an error message"}
+                json.dumps({"error": "This is an error message", "success": False})
 
             returned_value = ingest_takeon_data_wrangler.lambda_handler(
                 None, context_object
@@ -165,3 +165,27 @@ class TestIngestTakeOnData():
             assert "success" in returned_value
             assert returned_value["success"] is False
             assert returned_value["error"].__contains__("""This is an error message""")
+
+    @mock.patch("ingest_takeon_data_wrangler.boto3.client")
+    @mock.patch("ingest_takeon_data_wrangler.funk.read_from_s3")
+    @mock.patch("ingest_takeon_data_wrangler.funk.save_data")
+    @mock.patch("ingest_takeon_data_wrangler.funk.send_sns_message")
+    def test_key_error(self, mock_sns_return, mock_s3_write,
+                       mock_s3_return, mock_client):
+        mock_client_object = mock.Mock()
+        mock_client.return_value = mock_client_object
+        with open("tests/fixtures/takeon-data-export.json") as file:
+            input_data = json.load(file)
+            mock_s3_return.return_value = json.dumps(input_data)
+
+            mock_client_object.invoke.return_value.get.return_value \
+                .read.return_value.decode.return_value = \
+                json.dumps({"error": "This is an error message", "NotRight": False})
+
+            returned_value = ingest_takeon_data_wrangler.lambda_handler(
+                None, context_object
+            )
+
+            assert "success" in returned_value
+            assert returned_value["success"] is False
+            assert returned_value["error"].__contains__("""Key Error in""")

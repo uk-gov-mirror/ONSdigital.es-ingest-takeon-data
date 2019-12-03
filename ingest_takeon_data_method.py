@@ -89,6 +89,7 @@ def lambda_handler(event, context):
                         output_json.append(out_contrib)
 
         logger.info("Successfully extracted data from take on.")
+        final_output = {"data": output_json}
 
     except KeyError as e:
         error_message = ("Key Error in "
@@ -111,6 +112,7 @@ def lambda_handler(event, context):
         if (len(error_message)) > 0:
             logger.error(log_message)
             return {"success": False, "error": error_message}
-        else:
-            logger.info("Successfully completed method: " + current_module)
-            return output_json
+
+    logger.info("Successfully completed method: " + current_module)
+    final_output["success"] = True
+    return final_output

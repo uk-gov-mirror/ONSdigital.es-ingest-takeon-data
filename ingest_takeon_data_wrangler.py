@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -67,12 +68,16 @@ def lambda_handler(event, context):
         method_return = lambda_client.invoke(
          FunctionName=method_name, Payload=input_file
         )
+        logger.info("Successfully invoked method.")
 
-        output_json = method_return.get('Payload').read().decode("utf-8")
-        if str(type(output_json)) != "<class 'str'>":
-            raise funk.MethodFailure(output_json['error'])
+        json_response = json.loads(method_return.get('Payload').read().decode("utf-8"))
+        logger.info("JSON extracted from method response.")
+
+        if not json_response["success"]:
+            raise funk.MethodFailure(json_response['error'])
+
         funk.save_data(results_bucket_name, out_file_name,
-                       output_json, sqs_queue_url, sqs_message_group_id)
+                       json_response["data"], sqs_queue_url, sqs_message_group_id)
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
@@ -125,6 +130,6 @@ def lambda_handler(event, context):
         if (len(error_message)) > 0:
             logger.error(log_message)
             return {"success": False, "error": error_message}
-        else:
-            logger.info("Successfully completed module: " + current_module)
-            return {"success": True, "checkpoint": checkpoint}
+
+    logger.info("Successfully completed module: " + current_module)
+    return {"success": True, "checkpoint": checkpoint}
