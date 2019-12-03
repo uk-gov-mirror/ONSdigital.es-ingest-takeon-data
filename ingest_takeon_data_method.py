@@ -19,7 +19,7 @@ def lambda_handler(event, context):
     in the results pipeline, and send it to the Results S3 bucket for further processing.
     :param event: Event object
     :param context: Context object
-    :return: JSON String - {"success": boolean, "checkpoint"/"error": integer/string}
+    :return: Dict with "success" and "data" or "success and "error".
     """
     current_module = "Results Data Ingest - Method"
     error_message = ""
