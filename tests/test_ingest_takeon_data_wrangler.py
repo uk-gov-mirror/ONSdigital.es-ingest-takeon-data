@@ -39,9 +39,9 @@ class TestIngestTakeOnData():
         cls.mock_os_patcher.stop()
 
     @mock.patch("ingest_takeon_data_wrangler.boto3.client")
-    @mock.patch("ingest_takeon_data_wrangler.funk.read_from_s3")
-    @mock.patch("ingest_takeon_data_wrangler.funk.save_data")
-    @mock.patch("ingest_takeon_data_wrangler.funk.send_sns_message")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.read_from_s3")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.save_data")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.send_sns_message")
     def test_happy_path(self, mock_sns_return, mock_s3_write, mock_s3_return, mock_client):  # noqa: E501
         mock_client_object = mock.Mock()
         mock_client.return_value = mock_client_object
@@ -60,7 +60,7 @@ class TestIngestTakeOnData():
                 assert returned_value["success"] is True
 
     @mock.patch("ingest_takeon_data_wrangler.boto3.client")
-    @mock.patch("ingest_takeon_data_wrangler.funk.read_from_s3")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.read_from_s3")
     def test_general_exception(self, mock_s3_return, mock_client):
         mock_client_object = mock.Mock()
         mock_client.return_value = mock_client_object
@@ -113,9 +113,9 @@ class TestIngestTakeOnData():
 
         assert """Blank or empty environment variable in """ in returned_value["error"]
 
-    @mock.patch('ingest_takeon_data_wrangler.funk.send_sns_message')
+    @mock.patch('ingest_takeon_data_wrangler.aws_functions.send_sns_message')
     @mock.patch('ingest_takeon_data_wrangler.boto3.client')
-    @mock.patch('ingest_takeon_data_wrangler.funk.read_from_s3')
+    @mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3')
     def test_incomplete_json(self, mock_get_from_s3, mock_client, mock_sns):
         with open("tests/fixtures/takeon-data-export.json") as file:
             input_data = json.load(file)
@@ -132,7 +132,7 @@ class TestIngestTakeOnData():
 
         assert(returned_value['error'].__contains__("""Incomplete Lambda response"""))
 
-    @mock.patch('ingest_takeon_data_wrangler.funk.send_sns_message')
+    @mock.patch('ingest_takeon_data_wrangler.aws_functions.send_sns_message')
     @mock.patch('ingest_takeon_data_wrangler.boto3.client')
     def test_aws_error(self, mock_client, mock_sns):
 
@@ -143,9 +143,9 @@ class TestIngestTakeOnData():
         assert("AWS Error" in returned_value['error'])
 
     @mock.patch("ingest_takeon_data_wrangler.boto3.client")
-    @mock.patch("ingest_takeon_data_wrangler.funk.read_from_s3")
-    @mock.patch("ingest_takeon_data_wrangler.funk.save_data")
-    @mock.patch("ingest_takeon_data_wrangler.funk.send_sns_message")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.read_from_s3")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.save_data")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.send_sns_message")
     def test_method_fail(self, mock_sns_return, mock_s3_write,
                          mock_s3_return, mock_client):
         mock_client_object = mock.Mock()
@@ -167,9 +167,9 @@ class TestIngestTakeOnData():
             assert returned_value["error"].__contains__("""This is an error message""")
 
     @mock.patch("ingest_takeon_data_wrangler.boto3.client")
-    @mock.patch("ingest_takeon_data_wrangler.funk.read_from_s3")
-    @mock.patch("ingest_takeon_data_wrangler.funk.save_data")
-    @mock.patch("ingest_takeon_data_wrangler.funk.send_sns_message")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.read_from_s3")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.save_data")
+    @mock.patch("ingest_takeon_data_wrangler.aws_functions.send_sns_message")
     def test_key_error(self, mock_sns_return, mock_s3_write,
                        mock_s3_return, mock_client):
         mock_client_object = mock.Mock()

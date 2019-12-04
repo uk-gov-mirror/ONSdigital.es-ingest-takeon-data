@@ -4,7 +4,7 @@ import os
 
 import boto3
 from botocore.exceptions import ClientError, IncompleteReadError, ParamValidationError
-from esawsfunctions import funk
+from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
 
 
@@ -61,7 +61,7 @@ def lambda_handler(event, context):
 
         logger.info("Validated environment parameters.")
 
-        input_file = funk.read_from_s3(takeon_bucket_name, in_file_name)
+        input_file = aws_functions.read_from_s3(takeon_bucket_name, in_file_name)
 
         logger.info("Read from S3.")
 
@@ -74,14 +74,14 @@ def lambda_handler(event, context):
         logger.info("JSON extracted from method response.")
 
         if not json_response["success"]:
-            raise funk.MethodFailure(json_response['error'])
+            raise exception_classes.MethodFailure(json_response['error'])
 
-        funk.save_data(results_bucket_name, out_file_name,
+        aws_functions.save_data(results_bucket_name, out_file_name,
                        json_response["data"], sqs_queue_url, sqs_message_group_id)
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
-        funk.send_sns_message(checkpoint, sns_topic_arn, "Ingest.")
+        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Ingest.")
 
     except ClientError as e:
         error_message = ("AWS Error in ("
@@ -115,7 +115,7 @@ def lambda_handler(event, context):
                          + str(context.aws_request_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-    except funk.MethodFailure as e:
+    except exception_classes.MethodFailure as e:
         error_message = e.error_message
         log_message = "Error in " + method_name + "."
     except Exception as e:
