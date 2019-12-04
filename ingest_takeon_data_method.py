@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -19,7 +20,7 @@ def lambda_handler(event, context):
     in the results pipeline, and send it to the Results S3 bucket for further processing.
     :param event: Event object
     :param context: Context object
-    :return: JSON String - {"success": boolean, "checkpoint"/"error": integer/string}
+    :return: Dict with "success" and "data" or "success and "error".
     """
     current_module = "Results Data Ingest - Method"
     error_message = ""
@@ -89,6 +90,7 @@ def lambda_handler(event, context):
                         output_json.append(out_contrib)
 
         logger.info("Successfully extracted data from take on.")
+        final_output = {"data": json.dumps(output_json)}
 
     except KeyError as e:
         error_message = ("Key Error in "
@@ -111,6 +113,7 @@ def lambda_handler(event, context):
         if (len(error_message)) > 0:
             logger.error(log_message)
             return {"success": False, "error": error_message}
-        else:
-            logger.info("Successfully completed method: " + current_module)
-            return output_json
+
+    logger.info("Successfully completed method: " + current_module)
+    final_output["success"] = True
+    return final_output

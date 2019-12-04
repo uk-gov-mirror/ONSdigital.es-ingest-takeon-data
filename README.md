@@ -24,4 +24,4 @@ Steps performed:
 **Inputs**: The method requires the database 'dump' from Take On, which is in JSON format. This is passed into the method from the wrangler via the event object. It also requires specific environment
 variables in order to run, as defined in the Marshmallow schema.
 
-**Outputs**: A .json file that is written to an S3 bucket.
+**Outputs**: Dict with "success" and "data" or "success and "error".
