@@ -77,7 +77,8 @@ def lambda_handler(event, context):
             raise exception_classes.MethodFailure(json_response['error'])
 
         aws_functions.save_data(results_bucket_name, out_file_name,
-                       json_response["data"], sqs_queue_url, sqs_message_group_id)
+                                json_response["data"], sqs_queue_url,
+                                sqs_message_group_id)
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
