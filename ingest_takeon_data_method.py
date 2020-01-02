@@ -52,6 +52,7 @@ def lambda_handler(event, context):
                     if contributor['period'] == period:
                         out_contrib = {}
                         # basic contributor information
+                        out_contrib['survey'] = contributor['survey']
                         out_contrib['period'] = contributor['period']
                         out_contrib['responder_id'] = str(contributor['reference'])
                         out_contrib['gor_code'] = contributor['region']
