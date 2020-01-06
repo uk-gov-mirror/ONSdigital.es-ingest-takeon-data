@@ -52,6 +52,7 @@ def lambda_handler(event, context):
                     if contributor['period'] == period:
                         out_contrib = {}
                         # basic contributor information
+                        out_contrib['survey'] = contributor['survey']
                         out_contrib['period'] = contributor['period']
                         out_contrib['responder_id'] = str(contributor['reference'])
                         out_contrib['gor_code'] = contributor['region']
@@ -74,18 +75,6 @@ def lambda_handler(event, context):
                             if question['questioncode'] in question_labels.keys():
                                 out_contrib[question_labels[question['questioncode']]]\
                                     = int(question['response'])
-
-                        # survey marker is used instead of the survey code
-                        # -------------------------------------------- #
-                        # Do We Need To Do This Or Should Use
-                        # The Survey Code Throughout Our Processes.
-                        # This Would Allow Us To Make Other Modules
-                        # More Generic.
-                        # -------------------------------------------- #
-                        if contributor['survey'] == "066":
-                            out_contrib['land_or_marine'] = "L"
-                        elif contributor['survey'] == "076":
-                            out_contrib['land_or_marine'] = "M"
 
                         output_json.append(out_contrib)
 
