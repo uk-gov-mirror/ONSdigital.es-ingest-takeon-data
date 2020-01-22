@@ -126,7 +126,8 @@ def lambda_handler(event, context):
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except exception_classes.MethodFailure as e:
         error_message = e.error_message
-        log_message = "Error in " + method_name + "."
+        log_message = "Error in " + method_name + "."\
+            + " | Run_id: " + str(run_id)
     except Exception as e:
         error_message = ("General Error in "
                          + current_module + " ("
