@@ -3,7 +3,7 @@ import logging
 import os
 
 import boto3
-from botocore.exceptions import ClientError, IncompleteReadError, ParamValidationError
+from botocore.exceptions import ClientError, IncompleteReadError
 from es_aws_functions import aws_functions, exception_classes
 from marshmallow import Schema, fields
 
@@ -38,10 +38,14 @@ def lambda_handler(event, context):
     log_message = ""
     logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
+
+    # Define run_id outside of try block
+    run_id = 0
     try:
         logger.info("Running Results Data Ingest...")
-
-        lambda_client = boto3.client('lambda', region_name='eu-west-2')
+        # Retrieve run_id before input validation
+        # Because it is used in exception handling
+        run_id = event['RuntimeVariables']['id']
 
         # ENV vars
         schema = InputSchema()
@@ -60,7 +64,7 @@ def lambda_handler(event, context):
         takeon_bucket_name = config['takeon_bucket_name']
 
         logger.info("Validated environment parameters.")
-
+        lambda_client = boto3.client('lambda', region_name='eu-west-2')
         input_file = aws_functions.read_from_s3(takeon_bucket_name, in_file_name)
 
         logger.info("Read from S3.")
@@ -89,7 +93,8 @@ def lambda_handler(event, context):
                          + str(e.response["Error"]["Code"]) + ") "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -97,7 +102,8 @@ def lambda_handler(event, context):
         error_message = ("Key Error in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
@@ -105,15 +111,17 @@ def lambda_handler(event, context):
         error_message = ("Incomplete Lambda response encountered in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
 
-    except ParamValidationError as e:
+    except ValueError as e:
         error_message = ("Blank or empty environment variable in "
                          + current_module + " |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     except exception_classes.MethodFailure as e:
@@ -124,13 +132,14 @@ def lambda_handler(event, context):
                          + current_module + " ("
                          + str(type(e)) + ") |- "
                          + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
+                         + str(context.aws_request_id)
+                         + " | Run_id: " + str(run_id))
 
         log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
     finally:
         if (len(error_message)) > 0:
             logger.error(log_message)
-            return {"success": False, "error": error_message}
+            raise exception_classes.LambdaFailure(error_message)
 
     logger.info("Successfully completed module: " + current_module)
     return {"success": True, "checkpoint": checkpoint}
