@@ -14,7 +14,7 @@ class MockContext:
 
 context_object = MockContext()
 
-runtime_variables = {'RuntimeVariables': {"id": "bob"}}
+runtime_variables = {'RuntimeVariables': {"run_id": "bob"}}
 
 
 class TestIngestTakeOnData():
@@ -102,7 +102,7 @@ class TestIngestTakeOnData():
                     self, exception_classes.LambdaFailure) as exc_info:
                 ingest_takeon_data_wrangler.lambda_handler(
                     {"RuntimeVariables":
-                        {"checkpoint": 123, "period": "201809", "id": "bob"}},
+                        {"checkpoint": 123, "period": "201809", "run_id": "bob"}},
                     context_object,
                 )
             assert "Blank or empty environment variable in" in \
