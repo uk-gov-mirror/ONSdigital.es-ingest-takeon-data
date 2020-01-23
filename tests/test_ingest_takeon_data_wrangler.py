@@ -1,7 +1,9 @@
 import json
+import unittest
 import unittest.mock as mock
 
 from botocore.response import StreamingBody
+from es_aws_functions import exception_classes
 
 import ingest_takeon_data_wrangler
 
@@ -11,6 +13,8 @@ class MockContext:
 
 
 context_object = MockContext()
+
+runtime_variables = {'RuntimeVariables': {"run_id": "bob"}}
 
 
 class TestIngestTakeOnData():
@@ -53,7 +57,7 @@ class TestIngestTakeOnData():
                     .read.return_value.decode.return_value = \
                     json.dumps({"data": json.load(file), "success": True})
                 returned_value = ingest_takeon_data_wrangler.lambda_handler(
-                    None, context_object
+                    runtime_variables, context_object
                 )
 
                 assert "success" in returned_value
@@ -68,14 +72,13 @@ class TestIngestTakeOnData():
             input_data = json.load(file)
             mock_s3_return.return_value = json.dumps(input_data)
             mock_s3_return.side_effect = Exception("General exception")
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                ingest_takeon_data_wrangler.lambda_handler(
+                    runtime_variables, context_object
+                )
 
-            returned_value = ingest_takeon_data_wrangler.lambda_handler(
-                None, context_object
-            )
-
-            assert "success" in returned_value
-            assert returned_value["success"] is False
-            assert """General exception""" in returned_value["error"]
+            assert "General Error" in exc_info.exception.error_message
 
     def test_missing_env_var(self):
 
@@ -95,23 +98,15 @@ class TestIngestTakeOnData():
         ):
             # Removing the method_name to allow for test of missing parameter
             ingest_takeon_data_wrangler.os.environ.pop("method_name")
-            response = ingest_takeon_data_wrangler.lambda_handler(
-                {"RuntimeVariables": {"checkpoint": 123, "period": "201809"}},
-                context_object,
-            )
-
-            assert response["error"].__contains__(
-                """Error validating environment parameters:"""
-            )
-
-    def test_empty_env_var(self):
-        ingest_takeon_data_wrangler.os.environ["in_file_name"] = ""
-        returned_value = ingest_takeon_data_wrangler.lambda_handler(
-            None, context_object
-        )
-        ingest_takeon_data_wrangler.os.environ["in_file_name"] = "mock-file"
-
-        assert """Blank or empty environment variable in """ in returned_value["error"]
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                ingest_takeon_data_wrangler.lambda_handler(
+                    {"RuntimeVariables":
+                        {"checkpoint": 123, "period": "201809", "run_id": "bob"}},
+                    context_object,
+                )
+            assert "Blank or empty environment variable in" in \
+                   exc_info.exception.error_message
 
     @mock.patch('ingest_takeon_data_wrangler.aws_functions.send_sns_message')
     @mock.patch('ingest_takeon_data_wrangler.boto3.client')
@@ -126,21 +121,22 @@ class TestIngestTakeOnData():
             mock_client.return_value.invoke.return_value = {"Payload":
                                                             StreamingBody(file, 2)}
 
-            returned_value = ingest_takeon_data_wrangler.lambda_handler(
-                None, context_object
-            )
-
-        assert(returned_value['error'].__contains__("""Incomplete Lambda response"""))
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                ingest_takeon_data_wrangler.lambda_handler(
+                    runtime_variables, context_object
+                )
+            assert "Incomplete Lambda response" in exc_info.exception.error_message
 
     @mock.patch('ingest_takeon_data_wrangler.aws_functions.send_sns_message')
     @mock.patch('ingest_takeon_data_wrangler.boto3.client')
     def test_aws_error(self, mock_client, mock_sns):
-
-        returned_value = ingest_takeon_data_wrangler.lambda_handler(
-            None, context_object
-        )
-
-        assert("AWS Error" in returned_value['error'])
+        with unittest.TestCase.assertRaises(
+                self, exception_classes.LambdaFailure) as exc_info:
+            ingest_takeon_data_wrangler.lambda_handler(
+                runtime_variables, context_object
+            )
+        assert "AWS Error" in exc_info.exception.error_message
 
     @mock.patch("ingest_takeon_data_wrangler.boto3.client")
     @mock.patch("ingest_takeon_data_wrangler.aws_functions.read_from_s3")
@@ -158,13 +154,12 @@ class TestIngestTakeOnData():
                 .read.return_value.decode.return_value = \
                 json.dumps({"error": "This is an error message", "success": False})
 
-            returned_value = ingest_takeon_data_wrangler.lambda_handler(
-                None, context_object
-            )
-
-            assert "success" in returned_value
-            assert returned_value["success"] is False
-            assert returned_value["error"].__contains__("""This is an error message""")
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                ingest_takeon_data_wrangler.lambda_handler(
+                    runtime_variables, context_object
+                )
+            assert "error message" in exc_info.exception.error_message
 
     @mock.patch("ingest_takeon_data_wrangler.boto3.client")
     @mock.patch("ingest_takeon_data_wrangler.aws_functions.read_from_s3")
@@ -182,10 +177,9 @@ class TestIngestTakeOnData():
                 .read.return_value.decode.return_value = \
                 json.dumps({"error": "This is an error message", "NotRight": False})
 
-            returned_value = ingest_takeon_data_wrangler.lambda_handler(
-                None, context_object
-            )
-
-            assert "success" in returned_value
-            assert returned_value["success"] is False
-            assert returned_value["error"].__contains__("""Key Error in""")
+            with unittest.TestCase.assertRaises(
+                    self, exception_classes.LambdaFailure) as exc_info:
+                ingest_takeon_data_wrangler.lambda_handler(
+                    runtime_variables, context_object
+                )
+            assert "Key Error" in exc_info.exception.error_message
