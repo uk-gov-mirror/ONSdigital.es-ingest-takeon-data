@@ -60,7 +60,7 @@ def lambda_handler(event, context):
         results_bucket_name = config['results_bucket_name']
         sns_topic_arn = config['sns_topic_arn']
         sqs_message_group_id = config['sqs_message_group_id']
-        sqs_queue_url = config['sqs_queue_url']
+        sqs_queue_url = event['RuntimeVariables']['queue_url']
         takeon_bucket_name = config['takeon_bucket_name']
 
         logger.info("Validated environment parameters.")
