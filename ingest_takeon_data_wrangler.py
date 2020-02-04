@@ -65,7 +65,8 @@ def lambda_handler(event, context):
 
         logger.info("Validated environment parameters.")
         lambda_client = boto3.client('lambda', region_name='eu-west-2')
-        input_file = aws_functions.read_from_s3(takeon_bucket_name, in_file_name)
+        input_file = aws_functions.read_from_s3(takeon_bucket_name, in_file_name,
+                                                run_id)
 
         logger.info("Read from S3.")
 
@@ -82,7 +83,7 @@ def lambda_handler(event, context):
 
         aws_functions.save_data(results_bucket_name, out_file_name,
                                 json_response["data"], sqs_queue_url,
-                                sqs_message_group_id)
+                                sqs_message_group_id, run_id)
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
