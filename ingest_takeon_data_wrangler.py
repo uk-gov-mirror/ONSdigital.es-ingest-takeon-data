@@ -21,7 +21,6 @@ class InputSchema(Schema):
     results_bucket_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     sqs_message_group_id = fields.Str(required=True)
-    sqs_queue_url = fields.Str(required=True)
     takeon_bucket_name = fields.Str(required=True)
 
 
@@ -65,8 +64,7 @@ def lambda_handler(event, context):
 
         logger.info("Validated environment parameters.")
         lambda_client = boto3.client('lambda', region_name='eu-west-2')
-        input_file = aws_functions.read_from_s3(takeon_bucket_name, in_file_name,
-                                                run_id)
+        input_file = aws_functions.read_from_s3(takeon_bucket_name, in_file_name)
 
         logger.info("Read from S3.")
 
