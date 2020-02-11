@@ -53,7 +53,7 @@ def lambda_handler(event, context):
                         out_contrib = {}
                         # basic contributor information
                         out_contrib['survey'] = contributor['survey']
-                        out_contrib['period'] = contributor['period']
+                        out_contrib['period'] = str(contributor['period'])
                         out_contrib['responder_id'] = str(contributor['reference'])
                         out_contrib['gor_code'] = contributor['region']
                         # Not Known If Below Is Correct Column.
@@ -62,9 +62,9 @@ def lambda_handler(event, context):
                             out_contrib['response_type'] = 2
                         else:
                             out_contrib['response_type'] = 1
-                        out_contrib['enterprise_ref'] = str(
+                        out_contrib['enterprise_reference'] = str(
                             contributor['enterprisereference'])
-                        out_contrib['name'] = contributor['enterprisename']
+                        out_contrib['enterprise_name'] = contributor['enterprisename']
 
                         # prepopulate default question answers
                         for expected_question in question_labels.keys():
