@@ -63,7 +63,9 @@ def lambda_handler(event, context):
 
         logger.info("Validated environment parameters.")
         lambda_client = boto3.client('lambda', region_name='eu-west-2')
-        input_file = aws_functions.read_from_s3(takeon_bucket_name, in_file_name)
+        input_file = aws_functions.read_from_s3(takeon_bucket_name,
+                                                in_file_name,
+                                                file_extension="")
 
         logger.info("Read from S3.")
 
@@ -74,7 +76,7 @@ def lambda_handler(event, context):
         }
 
         method_return = lambda_client.invoke(
-         FunctionName=method_name, Payload=payload
+         FunctionName=method_name, Payload=json.dumps(payload)
         )
         logger.info("Successfully invoked method.")
 
