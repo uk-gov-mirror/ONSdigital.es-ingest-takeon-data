@@ -1,17 +1,7 @@
 import json
 import logging
-import os
 
-import marshmallow
-
-
-class InputSchema(marshmallow.Schema):
-    """
-    Schema to ensure that environment variables are present and in the correct format.
-    These vairables are expected by the method, and it will fail to run if not provided.
-    :return: None
-    """
-    period = marshmallow.fields.Str(required=True)
+from es_aws_functions import general_functions
 
 
 def lambda_handler(event, context):
@@ -30,38 +20,37 @@ def lambda_handler(event, context):
     try:
         logger.info("Retrieving data from take on file...")
 
-        config, errors = InputSchema().load(os.environ)
+        period = event['period']
+        periodicity = event['periodicity']
+        previous_period = general_functions.calculate_adjacent_periods(period,
+                                                                       periodicity)
 
-        period = config['period']
         question_labels = {
-            '601': 'Q601_asphalting_sand',
-            '602': 'Q602_building_soft_sand',
-            '603': 'Q603_concreting_sand',
-            '604': 'Q604_bituminous_gravel',
-            '605': 'Q605_concreting_gravel',
-            '606': 'Q606_other_gravel',
-            '607': 'Q607_constructional_fill',
-            '608': 'Q608_total'
+            '0601': 'Q601_asphalting_sand',
+            '0602': 'Q602_building_soft_sand',
+            '0603': 'Q603_concreting_sand',
+            '0604': 'Q604_bituminous_gravel',
+            '0605': 'Q605_concreting_gravel',
+            '0606': 'Q606_other_gravel',
+            '0607': 'Q607_constructional_fill',
+            '0608': 'Q608_total'
         }
 
-        input_json = event
+        input_json = event['data']
         output_json = []
         for survey in input_json['data']['allSurveys']['nodes']:
-            if survey['survey'] == "066" or survey['survey'] == "076":
+            if survey['survey'] == "0066" or survey['survey'] == "0076":
                 for contributor in survey['contributorsBySurvey']['nodes']:
-                    if contributor['period'] == period:
+                    if contributor['period'] in (period, previous_period):
                         out_contrib = {}
                         # basic contributor information
-                        out_contrib['survey'] = contributor['survey']
+                        if (contributor['survey'] == "0066"):
+                            out_contrib['survey'] = "066"
+                        else:
+                            out_contrib['survey'] = "076"
                         out_contrib['period'] = str(contributor['period'])
                         out_contrib['responder_id'] = str(contributor['reference'])
                         out_contrib['gor_code'] = contributor['region']
-                        # Not Known If Below Is Correct Column.
-                        # Temp Transform To Use As Response Type.
-                        if contributor['formid'] == 1:
-                            out_contrib['response_type'] = 2
-                        else:
-                            out_contrib['response_type'] = 1
                         out_contrib['enterprise_reference'] = str(
                             contributor['enterprisereference'])
                         out_contrib['enterprise_name'] = contributor['enterprisename']
@@ -70,11 +59,26 @@ def lambda_handler(event, context):
                         for expected_question in question_labels.keys():
                             out_contrib[question_labels[expected_question]] = 0
 
+                        # will mark if there is at least one actual response
+                        data_provided = False
+
                         # where contributors provided an aswer, use it instead
                         for question in contributor['responsesByReferenceAndPeriodAndSurvey']['nodes']:  # noqa: E501
-                            if question['questioncode'] in question_labels.keys():
+                            if question['questioncode'] in question_labels.keys() and\
+                               question['response'].isnumeric():
                                 out_contrib[question_labels[question['questioncode']]]\
                                     = int(question['response'])
+
+                                # check if response was provided
+                                if int(question['response']) != 0:
+                                    data_provided = True
+
+                        # response type indicator/status to be decided between the teams
+                        # this should work for now
+                        if data_provided:
+                            out_contrib['response_type'] = 2
+                        else:
+                            out_contrib['response_type'] = 1
 
                         output_json.append(out_contrib)
 

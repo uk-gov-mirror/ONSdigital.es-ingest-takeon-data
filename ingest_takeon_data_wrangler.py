@@ -15,12 +15,9 @@ class InputSchema(Schema):
     :return: None
     """
     checkpoint = fields.Str(required=True)
-    in_file_name = fields.Str(required=True)
     method_name = fields.Str(required=True)
-    out_file_name = fields.Str(required=True)
     results_bucket_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    sqs_message_group_id = fields.Str(required=True)
     takeon_bucket_name = fields.Str(required=True)
 
 
@@ -53,14 +50,16 @@ def lambda_handler(event, context):
             raise ValueError(f"Error validating environment parameters: {errors}")
 
         checkpoint = config['checkpoint']
-        in_file_name = config['in_file_name']
+        in_file_name = event['RuntimeVariables']['in_file_name']
+        out_file_name = event['RuntimeVariables']['out_file_name']
+        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
         method_name = config['method_name']
-        out_file_name = config['out_file_name']
         results_bucket_name = config['results_bucket_name']
         sns_topic_arn = config['sns_topic_arn']
-        sqs_message_group_id = config['sqs_message_group_id']
         sqs_queue_url = event['RuntimeVariables']['queue_url']
         takeon_bucket_name = config['takeon_bucket_name']
+        period = event['RuntimeVariables']['period']
+        periodicity = event['RuntimeVariables']['periodicity']
 
         logger.info("Validated environment parameters.")
         lambda_client = boto3.client('lambda', region_name='eu-west-2')
@@ -68,8 +67,14 @@ def lambda_handler(event, context):
 
         logger.info("Read from S3.")
 
+        payload = {
+            "data": json.loads(input_file),
+            "period": period,
+            "periodicity": periodicity
+        }
+
         method_return = lambda_client.invoke(
-         FunctionName=method_name, Payload=input_file
+         FunctionName=method_name, Payload=payload
         )
         logger.info("Successfully invoked method.")
 
@@ -81,7 +86,7 @@ def lambda_handler(event, context):
 
         aws_functions.save_data(results_bucket_name, out_file_name,
                                 json_response["data"], sqs_queue_url,
-                                sqs_message_group_id, run_id)
+                                outgoing_message_group_id, run_id)
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 

@@ -14,7 +14,15 @@ class MockContext:
 
 context_object = MockContext()
 
-runtime_variables = {'RuntimeVariables': {"run_id": "bob", "queue_url": "Earl"}}
+runtime_variables = {'RuntimeVariables': {
+    "run_id": "bob",
+    "queue_url": "Earl",
+    "in_file_name": "mock-file",
+    "out_file_name": "outie",
+    "outgoing_message_group_id": "mock_out_group",
+    "period": "202020",
+    "periodicity": "03"
+    }}
 
 
 class TestIngestTakeOnData():
@@ -25,14 +33,10 @@ class TestIngestTakeOnData():
             {
                 "takeon_bucket_name": "mock-bucket",
                 "results_bucket_name": "mock-bucket",
-                "in_file_name": "mock-file",
                 "method_name": "mock-function",
-                "period": "201809",
                 "checkpoint": "0",
                 "sqs_queue_url": "mock-queue-url",
-                "sqs_message_group_id": "mock-messageid",
                 "sns_topic_arn": "mock-topic-arn",
-                "out_file_name": "outie"
             },
         )
 
@@ -92,7 +96,6 @@ class TestIngestTakeOnData():
                     "arn": "mock:arn",
                     "checkpoint": "mock-checkpoint",
                     "method_name": "mock-name",
-                    "sqs_message_group_id": "mock-group-id",
                 },
         ):
             # Removing the method_name to allow for test of missing parameter
