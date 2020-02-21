@@ -10,6 +10,11 @@ class MockContext():
 
 context_object = MockContext()
 
+payload = {
+    "period": "201809",
+    "periodicity": "03"
+}
+
 
 class TestIngestTakeOnData():
     @classmethod
@@ -30,22 +35,25 @@ class TestIngestTakeOnData():
     def test_method_happy_path(self):
         with open("tests/fixtures/takeon-data-export.json") as input_file:
             input_data = json.load(input_file)
+            payload["data"] = input_data
             returned_value = ingest_takeon_data_method.lambda_handler(
-                input_data, context_object
+                payload, context_object
             )
 
         with open("tests/fixtures/test_results_ingest_output.json") as expected_file:
             expected = expected_file
-
             assert json.loads(returned_value["data"]) == json.load(expected)
 
     def test_method_general_exception(self):
         with open("tests/fixtures/takeon-data-export.json") as file:
             input_data = json.load(file)
-            with mock.patch("ingest_takeon_data_method.InputSchema.load") as mocked:
+            with mock.patch(
+                "ingest_takeon_data_method.general_functions.calculate_adjacent_periods")\
+                    as mocked:
                 mocked.side_effect = Exception("General exception")
+                payload["data"] = input_data
                 response = ingest_takeon_data_method.lambda_handler(
-                    input_data, context_object
+                    payload, context_object
                 )
 
                 assert "success" in response
@@ -53,12 +61,11 @@ class TestIngestTakeOnData():
                 assert """General exception""" in response["error"]
 
     def test_method_key_error(self):
-        with open("tests/fixtures/takeon-data-export.json") as file:
-            input_data = json.load(file)
-            ingest_takeon_data_method.os.environ.pop("period")
-            returned_value = ingest_takeon_data_method.lambda_handler(
-                json.dumps(input_data), context_object
-            )
-            ingest_takeon_data_method.os.environ["period"] = "201809"
+        if "data" in payload:
+            payload.pop("data")
 
-            assert """Key Error""" in returned_value["error"]
+        returned_value = ingest_takeon_data_method.lambda_handler(
+            payload, context_object
+        )
+
+        assert """Key Error""" in returned_value["error"]
