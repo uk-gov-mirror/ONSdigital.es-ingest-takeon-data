@@ -61,7 +61,8 @@ class TestIngestTakeOnData():
                 assert """General exception""" in response["error"]
 
     def test_method_key_error(self):
-        payload.pop("data")
+        if "data" in payload:
+            payload.pop("data")
 
         returned_value = ingest_takeon_data_method.lambda_handler(
             payload, context_object
