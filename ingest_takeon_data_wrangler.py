@@ -49,17 +49,21 @@ def lambda_handler(event, context):
         if errors:
             raise ValueError(f"Error validating environment parameters: {errors}")
 
+        # Environment Variables
         checkpoint = config['checkpoint']
-        in_file_name = event['RuntimeVariables']['in_file_name']
-        out_file_name = event['RuntimeVariables']['out_file_name']
-        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
+        takeon_bucket_name = config['takeon_bucket_name']
         method_name = config['method_name']
         results_bucket_name = config['results_bucket_name']
         sns_topic_arn = config['sns_topic_arn']
-        sqs_queue_url = event['RuntimeVariables']['queue_url']
-        takeon_bucket_name = config['takeon_bucket_name']
+
+        # Runtime Variables
+        in_file_name = event['RuntimeVariables']['in_file_name']
+        location = event['RuntimeVariables']['location']
+        out_file_name = event['RuntimeVariables']['out_file_name']
+        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
         period = event['RuntimeVariables']['period']
         periodicity = event['RuntimeVariables']['periodicity']
+        sqs_queue_url = event['RuntimeVariables']['queue_url']
 
         logger.info("Validated environment parameters.")
         lambda_client = boto3.client('lambda', region_name='eu-west-2')
@@ -88,7 +92,7 @@ def lambda_handler(event, context):
 
         aws_functions.save_data(results_bucket_name, out_file_name,
                                 json_response["data"], sqs_queue_url,
-                                outgoing_message_group_id, run_id)
+                                outgoing_message_group_id, location)
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 

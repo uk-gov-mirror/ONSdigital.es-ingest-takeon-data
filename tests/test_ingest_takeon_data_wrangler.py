@@ -21,7 +21,8 @@ runtime_variables = {'RuntimeVariables': {
     "out_file_name": "outie",
     "outgoing_message_group_id": "mock_out_group",
     "period": "202020",
-    "periodicity": "03"
+    "periodicity": "03",
+    "location": "Here"
     }}
 
 
