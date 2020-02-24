@@ -49,6 +49,7 @@ def lambda_handler(event, context):
         if errors:
             raise ValueError(f"Error validating environment parameters: {errors}")
 
+        location = event['RuntimeVariables']['location']
         checkpoint = config['checkpoint']
         in_file_name = event['RuntimeVariables']['in_file_name']
         out_file_name = event['RuntimeVariables']['out_file_name']
@@ -88,7 +89,7 @@ def lambda_handler(event, context):
 
         aws_functions.save_data(results_bucket_name, out_file_name,
                                 json_response["data"], sqs_queue_url,
-                                outgoing_message_group_id, run_id)
+                                outgoing_message_group_id, location)
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
