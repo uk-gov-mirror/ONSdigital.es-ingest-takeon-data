@@ -140,7 +140,7 @@ class TestIngestTakeOnData():
             ingest_takeon_data_wrangler.lambda_handler(
                 runtime_variables, context_object
             )
-        assert "AWS Error" in exc_info.exception.error_message
+        assert "Could not find" in exc_info.exception.error_message
 
     @mock.patch("ingest_takeon_data_wrangler.boto3.client")
     @mock.patch("ingest_takeon_data_wrangler.aws_functions.read_from_s3")
