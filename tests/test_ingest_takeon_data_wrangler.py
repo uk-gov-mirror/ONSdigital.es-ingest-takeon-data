@@ -22,6 +22,7 @@ runtime_variables = {'RuntimeVariables': {
     "outgoing_message_group_id": "mock_out_group",
     "period": "202020",
     "periodicity": "03",
+    "sns_topic_arn": "mock-topic-arn",
     "location": "Here"
     }}
 
@@ -36,8 +37,7 @@ class TestIngestTakeOnData():
                 "results_bucket_name": "mock-bucket",
                 "method_name": "mock-function",
                 "checkpoint": "0",
-                "sqs_queue_url": "mock-queue-url",
-                "sns_topic_arn": "mock-topic-arn",
+                "sqs_queue_url": "mock-queue-url"
             },
         )
 
