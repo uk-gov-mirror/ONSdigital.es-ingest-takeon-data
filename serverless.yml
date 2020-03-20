@@ -41,7 +41,6 @@ functions:
       checkpoint: 0
       method_name: es-ingest-takeon-data-method
       results_bucket_name: spp-results-sandbox
-      sns_topic_arn: arn:aws:sns:eu-west-2:${self:custom.accountId}:BMIResults
       takeon_bucket_name: takeon.validationdb.export.bucket
 
   deploy-method:

@@ -17,7 +17,6 @@ class InputSchema(Schema):
     checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)
     results_bucket_name = fields.Str(required=True)
-    sns_topic_arn = fields.Str(required=True)
     takeon_bucket_name = fields.Str(required=True)
 
 
@@ -54,7 +53,6 @@ def lambda_handler(event, context):
         takeon_bucket_name = config['takeon_bucket_name']
         method_name = config['method_name']
         results_bucket_name = config['results_bucket_name']
-        sns_topic_arn = config['sns_topic_arn']
 
         # Runtime Variables
         in_file_name = event['RuntimeVariables']['in_file_name']
@@ -63,6 +61,7 @@ def lambda_handler(event, context):
         outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
         period = event['RuntimeVariables']['period']
         periodicity = event['RuntimeVariables']['periodicity']
+        sns_topic_arn = event['RuntimeVariables']['sns_topic_arn']
         sqs_queue_url = event['RuntimeVariables']['queue_url']
 
         logger.info("Validated environment parameters.")
