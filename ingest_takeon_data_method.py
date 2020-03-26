@@ -14,12 +14,14 @@ def lambda_handler(event, context):
     """
     current_module = "Results Data Ingest - Method"
     error_message = ""
-    log_message = ""
     logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
+    run_id = 0
     try:
         logger.info("Retrieving data from take on file...")
-
+        # Retrieve run_id before input validation
+        # Because it is used in exception handling
+        run_id = event['RuntimeVariables']['run_id']
         period = event['period']
         periodicity = event['periodicity']
         previous_period = general_functions.calculate_adjacent_periods(period,
@@ -85,28 +87,14 @@ def lambda_handler(event, context):
         logger.info("Successfully extracted data from take on.")
         final_output = {"data": json.dumps(output_json)}
 
-    except KeyError as e:
-        error_message = ("Key Error in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
     except Exception as e:
-        error_message = ("General Error in "
-                         + current_module + " ("
-                         + str(type(e)) + ") |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context)
     finally:
         if (len(error_message)) > 0:
-            logger.error(log_message)
+            logger.error(error_message)
             return {"success": False, "error": error_message}
 
-    logger.info("Successfully completed method: " + current_module)
-    final_output["success"] = True
+    logger.info("Successfully completed module: " + current_module)
+    final_output['success'] = True
     return final_output

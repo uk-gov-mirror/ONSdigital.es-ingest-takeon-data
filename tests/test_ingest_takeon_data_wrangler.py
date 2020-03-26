@@ -83,7 +83,7 @@ class TestIngestTakeOnData():
                     runtime_variables, context_object
                 )
 
-            assert "General Error" in exc_info.exception.error_message
+            assert "'Exception'" in exc_info.exception.error_message
 
     def test_missing_env_var(self):
 
@@ -106,10 +106,10 @@ class TestIngestTakeOnData():
                 ingest_takeon_data_wrangler.lambda_handler(
                     {"RuntimeVariables":
                         {"checkpoint": 123, "period": "201809", "run_id": "bob",
-                         "queue_url": "Earl"}},
+                         "queue_url": "Earl", "run_id": "bob"}},
                     context_object,
                 )
-            assert "Blank or empty environment variable in" in \
+            assert "Error validating environment param" in \
                    exc_info.exception.error_message
 
     @mock.patch('ingest_takeon_data_wrangler.aws_functions.send_sns_message')
@@ -130,7 +130,7 @@ class TestIngestTakeOnData():
                 ingest_takeon_data_wrangler.lambda_handler(
                     runtime_variables, context_object
                 )
-            assert "Incomplete Lambda response" in exc_info.exception.error_message
+            assert "IncompleteReadError" in exc_info.exception.error_message
 
     @mock.patch('ingest_takeon_data_wrangler.aws_functions.send_sns_message')
     @mock.patch('ingest_takeon_data_wrangler.boto3.client')
@@ -140,7 +140,7 @@ class TestIngestTakeOnData():
             ingest_takeon_data_wrangler.lambda_handler(
                 runtime_variables, context_object
             )
-        assert "Could not find" in exc_info.exception.error_message
+        assert "ClientError" in exc_info.exception.error_message
 
     @mock.patch("ingest_takeon_data_wrangler.boto3.client")
     @mock.patch("ingest_takeon_data_wrangler.aws_functions.read_from_s3")
@@ -186,4 +186,4 @@ class TestIngestTakeOnData():
                 ingest_takeon_data_wrangler.lambda_handler(
                     runtime_variables, context_object
                 )
-            assert "Key Error" in exc_info.exception.error_message
+            assert "KeyError" in exc_info.exception.error_message

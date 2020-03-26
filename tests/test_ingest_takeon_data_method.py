@@ -12,7 +12,8 @@ context_object = MockContext()
 
 payload = {
     "period": "201809",
-    "periodicity": "03"
+    "periodicity": "03",
+    "RuntimeVariables": {"run_id": "o"}
 }
 
 
@@ -58,7 +59,7 @@ class TestIngestTakeOnData():
 
                 assert "success" in response
                 assert response["success"] is False
-                assert """General exception""" in response["error"]
+                assert "'Exception'" in response["error"]
 
     def test_method_key_error(self):
         if "data" in payload:
@@ -68,4 +69,4 @@ class TestIngestTakeOnData():
             payload, context_object
         )
 
-        assert """Key Error""" in returned_value["error"]
+        assert "KeyError" in returned_value["error"]

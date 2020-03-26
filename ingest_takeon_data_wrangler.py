@@ -3,8 +3,7 @@ import logging
 import os
 
 import boto3
-from botocore.exceptions import ClientError, IncompleteReadError
-from es_aws_functions import aws_functions, exception_classes
+from es_aws_functions import aws_functions, exception_classes, general_functions
 from marshmallow import Schema, fields
 
 
@@ -30,7 +29,6 @@ def lambda_handler(event, context):
     """
     current_module = "Results Data Ingest - Wrangler"
     error_message = ""
-    log_message = ""
     logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
 
@@ -75,7 +73,8 @@ def lambda_handler(event, context):
         payload = {
             "data": json.loads(input_file),
             "period": period,
-            "periodicity": periodicity
+            "periodicity": periodicity,
+            "RuntimeVariables": {"run_id": run_id}
         }
 
         method_return = lambda_client.invoke(
@@ -97,58 +96,12 @@ def lambda_handler(event, context):
 
         aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Ingest.")
 
-    except ClientError as e:
-        error_message = ("AWS Error in ("
-                         + str(e.response["Error"]["Code"]) + ") "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except KeyError as e:
-        error_message = ("Key Error in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except IncompleteReadError as e:
-        error_message = ("Incomplete Lambda response encountered in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-
-    except ValueError as e:
-        error_message = ("Blank or empty environment variable in "
-                         + current_module + " |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
-    except exception_classes.MethodFailure as e:
-        error_message = e.error_message
-        log_message = "Error in " + method_name + "."\
-            + " | Run_id: " + str(run_id)
     except Exception as e:
-        error_message = ("General Error in "
-                         + current_module + " ("
-                         + str(type(e)) + ") |- "
-                         + str(e.args) + " | Request ID: "
-                         + str(context.aws_request_id)
-                         + " | Run_id: " + str(run_id))
-
-        log_message = error_message + " | Line: " + str(e.__traceback__.tb_lineno)
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context)
     finally:
         if (len(error_message)) > 0:
-            logger.error(log_message)
+            logger.error(error_message)
             raise exception_classes.LambdaFailure(error_message)
 
     logger.info("Successfully completed module: " + current_module)
