@@ -60,3 +60,4 @@ functions:
       period: 201809
 plugins:
   - serverless-latest-layer-version
+  - serverless-pseudo-parameters
