@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 cd ingest-deploy-repository
+echo Installing dependencies
 serverless plugin install --name serverless-pseudo-parameters
 serverless plugin install --name serverless-latest-layer-version
 echo Packaging serverless bundle...
