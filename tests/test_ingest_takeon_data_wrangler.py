@@ -38,16 +38,6 @@ runtime_variables = {'RuntimeVariables': {
       "survey_codes": {
         "0066": "066",
         "0076": "076"
-      },
-      "status_codes": {
-        "data_provided": [
-          "hello",
-          "mars"
-        ],
-        "to_impute": [
-          "goodbye",
-          "earth"
-        ]
       }
     }
 }}
