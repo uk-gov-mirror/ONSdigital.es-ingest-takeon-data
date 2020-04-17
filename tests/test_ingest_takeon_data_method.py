@@ -13,7 +13,23 @@ context_object = MockContext()
 payload = {
     "period": "201809",
     "periodicity": "03",
-    "RuntimeVariables": {"run_id": "o"}
+    "RuntimeVariables": {
+        "run_id": "o",
+        "question_labels": {
+            '0601': 'Q601_asphalting_sand',
+            '0602': 'Q602_building_soft_sand',
+            '0603': 'Q603_concreting_sand',
+            '0604': 'Q604_bituminous_gravel',
+            '0605': 'Q605_concreting_gravel',
+            '0606': 'Q606_other_gravel',
+            '0607': 'Q607_constructional_fill',
+            '0608': 'Q608_total'
+        },
+        "survey_codes": {
+            "0066": "066",
+            "0076": "076"
+        }
+    }
 }
 
 

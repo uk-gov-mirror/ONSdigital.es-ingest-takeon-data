@@ -23,8 +23,34 @@ runtime_variables = {'RuntimeVariables': {
     "period": "202020",
     "periodicity": "03",
     "sns_topic_arn": "mock-topic-arn",
-    "location": "Here"
-    }}
+    "location": "Here",
+    "ingestion_parameters": {
+      "question_labels": {
+        '0601': 'Q601_asphalting_sand',
+        '0602': 'Q602_building_soft_sand',
+        '0603': 'Q603_concreting_sand',
+        '0604': 'Q604_bituminous_gravel',
+        '0605': 'Q605_concreting_gravel',
+        '0606': 'Q606_other_gravel',
+        '0607': 'Q607_constructional_fill',
+        '0608': 'Q608_total'
+      },
+      "survey_codes": {
+        "0066": "066",
+        "0076": "076"
+      },
+      "status_codes": {
+        "data_provided": [
+          "hello",
+          "mars"
+        ],
+        "to_impute": [
+          "goodbye",
+          "earth"
+        ]
+      }
+    }
+}}
 
 
 class TestIngestTakeOnData():
