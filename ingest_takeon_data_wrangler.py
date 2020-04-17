@@ -61,6 +61,7 @@ def lambda_handler(event, context):
         periodicity = event['RuntimeVariables']['periodicity']
         sns_topic_arn = event['RuntimeVariables']['sns_topic_arn']
         sqs_queue_url = event['RuntimeVariables']['queue_url']
+        ingestion_parameters = event["RuntimeVariables"]["ingestion_parameters"]
 
         logger.info("Validated environment parameters.")
         lambda_client = boto3.client('lambda', region_name='eu-west-2')
@@ -74,7 +75,11 @@ def lambda_handler(event, context):
             "data": json.loads(input_file),
             "period": period,
             "periodicity": periodicity,
-            "RuntimeVariables": {"run_id": run_id}
+            "RuntimeVariables": {
+                "run_id": run_id,
+                "question_labels": ingestion_parameters["question_labels"],
+                "survey_codes": ingestion_parameters["survey_codes"]
+            },
         }
 
         method_return = lambda_client.invoke(

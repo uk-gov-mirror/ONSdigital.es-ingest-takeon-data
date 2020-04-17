@@ -16,40 +16,32 @@ def lambda_handler(event, context):
     error_message = ""
     logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
+    # Define run_id outside of try block
     run_id = 0
     try:
         logger.info("Retrieving data from take on file...")
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event['RuntimeVariables']['run_id']
+
+        # Extract configuration variables
         period = event['period']
         periodicity = event['periodicity']
         previous_period = general_functions.calculate_adjacent_periods(period,
                                                                        periodicity)
-
-        question_labels = {
-            '0601': 'Q601_asphalting_sand',
-            '0602': 'Q602_building_soft_sand',
-            '0603': 'Q603_concreting_sand',
-            '0604': 'Q604_bituminous_gravel',
-            '0605': 'Q605_concreting_gravel',
-            '0606': 'Q606_other_gravel',
-            '0607': 'Q607_constructional_fill',
-            '0608': 'Q608_total'
-        }
+        question_labels = event['RuntimeVariables']['question_labels']
+        survey_codes = event['RuntimeVariables']['survey_codes']
 
         input_json = event['data']
         output_json = []
         for survey in input_json['data']['allSurveys']['nodes']:
-            if survey['survey'] == "0066" or survey['survey'] == "0076":
+            if survey['survey'] in survey_codes:
                 for contributor in survey['contributorsBySurvey']['nodes']:
                     if contributor['period'] in (period, previous_period):
                         out_contrib = {}
+
                         # basic contributor information
-                        if (contributor['survey'] == "0066"):
-                            out_contrib['survey'] = "066"
-                        else:
-                            out_contrib['survey'] = "076"
+                        out_contrib['survey'] = survey_codes[contributor['survey']]
                         out_contrib['period'] = str(contributor['period'])
                         out_contrib['responder_id'] = str(contributor['reference'])
                         out_contrib['gor_code'] = contributor['region']
