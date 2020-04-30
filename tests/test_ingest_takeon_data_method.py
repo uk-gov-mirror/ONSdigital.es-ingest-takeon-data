@@ -28,6 +28,11 @@ payload = {
         "survey_codes": {
             "0066": "066",
             "0076": "076"
+        },
+        "statuses": {
+            "Form Sent Out": 1,
+            "Clear": 2,
+            "Overridden": 2
         }
     }
 }

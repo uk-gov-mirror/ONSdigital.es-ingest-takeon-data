@@ -14,7 +14,7 @@
         "Q606_other_gravel": 299150728,
         "Q607_constructional_fill": 700635557,
         "Q608_total": 620019808,
-        "response_type": 2
+        "response_type": 1
     },
     {
         "survey": "066",
@@ -48,7 +48,7 @@
         "Q606_other_gravel": 360146133,
         "Q607_constructional_fill": 734356718,
         "Q608_total": 924297423,
-        "response_type": 2
+        "response_type": 1
     },
     {
         "survey": "066",
@@ -82,7 +82,7 @@
         "Q606_other_gravel": 212627234,
         "Q607_constructional_fill": 917439796,
         "Q608_total": 732132073,
-        "response_type": 2
+        "response_type": 1
     },
     {
         "survey": "066",
@@ -99,7 +99,7 @@
         "Q606_other_gravel": 418189988,
         "Q607_constructional_fill": 100322514,
         "Q608_total": 113525763,
-        "response_type": 2
+        "response_type": 1
     },
     {
         "survey": "066",
@@ -116,7 +116,7 @@
         "Q606_other_gravel": 252976053,
         "Q607_constructional_fill": 724748877,
         "Q608_total": 64612692,
-        "response_type": 2
+        "response_type": 1
     },
     {
         "survey": "076",
@@ -167,7 +167,7 @@
         "Q606_other_gravel": 0,
         "Q607_constructional_fill": 0,
         "Q608_total": 0,
-        "response_type": 1
+        "response_type": 2
     },
     {
         "survey": "076",
@@ -184,7 +184,7 @@
         "Q606_other_gravel": 0,
         "Q607_constructional_fill": 0,
         "Q608_total": 0,
-        "response_type": 1
+        "response_type": 2
     },
     {
         "survey": "076",
