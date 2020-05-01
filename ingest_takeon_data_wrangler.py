@@ -78,7 +78,8 @@ def lambda_handler(event, context):
             "RuntimeVariables": {
                 "run_id": run_id,
                 "question_labels": ingestion_parameters["question_labels"],
-                "survey_codes": ingestion_parameters["survey_codes"]
+                "survey_codes": ingestion_parameters["survey_codes"],
+                "statuses": ingestion_parameters["statuses"]
             },
         }
 

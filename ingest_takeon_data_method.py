@@ -31,6 +31,7 @@ def lambda_handler(event, context):
                                                                        periodicity)
         question_labels = event['RuntimeVariables']['question_labels']
         survey_codes = event['RuntimeVariables']['survey_codes']
+        statuses = event['RuntimeVariables']['statuses']
 
         input_json = event['data']
         output_json = []
@@ -53,9 +54,6 @@ def lambda_handler(event, context):
                         for expected_question in question_labels.keys():
                             out_contrib[question_labels[expected_question]] = 0
 
-                        # will mark if there is at least one actual response
-                        data_provided = False
-
                         # where contributors provided an aswer, use it instead
                         for question in contributor['responsesByReferenceAndPeriodAndSurvey']['nodes']:  # noqa: E501
                             if question['questioncode'] in question_labels.keys() and\
@@ -63,14 +61,12 @@ def lambda_handler(event, context):
                                 out_contrib[question_labels[question['questioncode']]]\
                                     = int(question['response'])
 
-                                # check if response was provided
-                                if int(question['response']) != 0:
-                                    data_provided = True
-
-                        # response type indicator/status to be decided between the teams
-                        # this should work for now
-                        if data_provided:
-                            out_contrib['response_type'] = 2
+                        # convert the response statuses to types,
+                        # used by results to check if imputation should run
+                        # assume all unknown statuses need to be imputed
+                        # (this may change after further cross-team talks)
+                        if contributor['status'] in statuses:
+                            out_contrib['response_type'] = statuses[contributor['status']]
                         else:
                             out_contrib['response_type'] = 1
 
