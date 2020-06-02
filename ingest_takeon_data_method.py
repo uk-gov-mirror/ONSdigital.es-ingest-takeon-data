@@ -25,16 +25,17 @@ def lambda_handler(event, context):
         run_id = event['RuntimeVariables']['run_id']
 
         # Extract configuration variables
-        period = event['period']
-        periodicity = event['periodicity']
+        period = event['RuntimeVariables']['period']
+        periodicity = event['RuntimeVariables']['periodicity']
         previous_period = general_functions.calculate_adjacent_periods(period,
                                                                        periodicity)
         question_labels = event['RuntimeVariables']['question_labels']
         survey_codes = event['RuntimeVariables']['survey_codes']
         statuses = event['RuntimeVariables']['statuses']
 
-        input_json = event['data']
+        input_json = event['RuntimeVariables']['data']
         output_json = []
+
         for survey in input_json['data']['allSurveys']['nodes']:
             if survey['survey'] in survey_codes:
                 for contributor in survey['contributorsBySurvey']['nodes']:
