@@ -1,10 +1,8 @@
-import io
 import json
 from unittest import mock
 
 import pandas as pd
 import pytest
-from botocore.response import StreamingBody
 from es_aws_functions import exception_classes, test_generic_library
 from moto import mock_s3
 from pandas.util.testing import assert_frame_equal
@@ -123,28 +121,17 @@ def test_general_error(which_lambda, which_runtime_variables,
                                        expected_message, assertion)
 
 
-def test_incomplete_read_error():
-    file_name = "tests/fixtures/test_ingest_input.json"
-
-    with open(file_name, "r") as file:
-        test_data = file.read()
-    with mock.patch("ingest_takeon_data_wrangler.aws_functions.read_from_s3") as \
-            mock_read:
-        mock_read.return_value = test_data
-        with mock.patch("ingest_takeon_data_wrangler.boto3.client") as mock_client:
-            mock_client_object = mock.Mock()
-            mock_client.return_value = mock_client_object
-
-            test_data_bad = io.BytesIO(b'{"Bad Bytes": 999}')
-            mock_client_object.invoke.return_value = {
-                "Payload": StreamingBody(test_data_bad, 1)}
-            with pytest.raises(exception_classes.LambdaFailure) as exc_info:
-                with mock.patch.dict(lambda_wrangler_function.os.environ,
-                                     wrangler_environment_variables):
-                    lambda_wrangler_function.lambda_handler(wrangler_runtime_variables,
-                                                            None)
-            print(exc_info.value)
-        assert "IncompleteReadError" in exc_info.value.error_message
+@mock_s3
+@mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3',
+            return_value=json.dumps({"test": "test"}))
+def test_incomplete_read_error(mock_s3_get):
+    file_list = ["test_ingest_input.json"]
+    test_generic_library.incomplete_read_error(lambda_wrangler_function,
+                                               wrangler_runtime_variables,
+                                               wrangler_environment_variables,
+                                               file_list,
+                                               "ingest_takeon_data_wrangler",
+                                               "IncompleteReadError")
 
 
 @pytest.mark.parametrize(
@@ -214,19 +201,6 @@ def test_method_success():
 
     assert output["success"]
     assert_frame_equal(produced_data, prepared_data)
-
-
-@mock_s3
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3',
-            return_value=json.dumps({"test": "test"}))
-def test_incomplete_read(mock_s3_get):
-    file_list = ["test_ingest_input.json"]
-    test_generic_library.incomplete_read_error(lambda_wrangler_function,
-                                               wrangler_runtime_variables,
-                                               wrangler_environment_variables,
-                                               file_list,
-                                               "ingest_takeon_data_wrangler",
-                                               "IncompleteReadError")
 
 
 @mock_s3
