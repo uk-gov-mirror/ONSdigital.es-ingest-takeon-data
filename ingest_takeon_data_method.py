@@ -12,9 +12,9 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: Dict with "success" and "data" or "success and "error".
     """
-    current_module = "Results Data Ingest - Method"
+    current_module = "Results Ingest - Takeon Data - Method"
     error_message = ""
-    logger = logging.getLogger("Results Data Ingest")
+    logger = logging.getLogger("Results Ingest - Takeon Data")
     logger.setLevel(10)
     # Define run_id outside of try block
     run_id = 0

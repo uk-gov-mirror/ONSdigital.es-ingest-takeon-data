@@ -21,15 +21,16 @@ class InputSchema(Schema):
 
 def lambda_handler(event, context):
     """
-    This method will ingest data from Take On S3 bucket, transform it so that it fits
-    in the results pipeline, and send it to the Results S3 bucket for further processing.
+    This method will take the simple bricks survey data and expand it to have seperate
+     coloumn for each brick type as expceted by the results pipeline. It'll then send it to
+     the Results S3 bucket for further processing.
     :param event: Event object
     :param context: Context object
     :return: JSON String - {"success": boolean, "checkpoint"/"error": integer/string}
     """
-    current_module = "Results Ingest - Takeon Data - Wrangler"
+    current_module = "Results Ingest - Brick Type - Wrangler"
     error_message = ""
-    logger = logging.getLogger("Results Ingest - Takeon Data")
+    logger = logging.getLogger("Results Ingest - Brick Type")
     logger.setLevel(10)
 
     # Define run_id outside of try block
@@ -48,7 +49,6 @@ def lambda_handler(event, context):
 
         # Environment Variables
         checkpoint = config['checkpoint']
-        takeon_bucket_name = config['takeon_bucket_name']
         method_name = config['method_name']
         results_bucket_name = config['results_bucket_name']
 
@@ -57,15 +57,13 @@ def lambda_handler(event, context):
         location = event['RuntimeVariables']['location']
         out_file_name = event['RuntimeVariables']['out_file_name']
         outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
-        period = event['RuntimeVariables']['period']
-        periodicity = event['RuntimeVariables']['periodicity']
         sns_topic_arn = event['RuntimeVariables']['sns_topic_arn']
         sqs_queue_url = event['RuntimeVariables']['queue_url']
         ingestion_parameters = event["RuntimeVariables"]["ingestion_parameters"]
 
         logger.info("Validated environment parameters.")
         lambda_client = boto3.client('lambda', region_name='eu-west-2')
-        input_file = aws_functions.read_from_s3(takeon_bucket_name,
+        input_file = aws_functions.read_from_s3(results_bucket_name,
                                                 in_file_name,
                                                 file_extension="")
 
@@ -75,12 +73,9 @@ def lambda_handler(event, context):
 
             "RuntimeVariables": {
                 "data": json.loads(input_file),
-                "period": period,
-                "periodicity": periodicity,
                 "run_id": run_id,
-                "question_labels": ingestion_parameters["question_labels"],
-                "survey_codes": ingestion_parameters["survey_codes"],
-                "statuses": ingestion_parameters["statuses"]
+                "brick_questions": ingestion_parameters["brick_questions"],
+                "brick_types": ingestion_parameters["brick_types"]
             },
         }
 
