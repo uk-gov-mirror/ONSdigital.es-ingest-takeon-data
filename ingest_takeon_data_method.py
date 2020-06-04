@@ -2,6 +2,23 @@ import json
 import logging
 
 from es_aws_functions import general_functions
+from marshmallow import EXCLUDE, Schema, fields
+
+
+class RuntimeSchema(Schema):
+
+    class Meta:
+        unknown = EXCLUDE
+
+    def handle_error(self, e, data, **kwargs):
+        logging.error(f"Error validating runtime params: {e}.")
+        raise ValueError(f"Error validating runtime params: {e}.")
+
+    period = fields.Str(required=True)
+    periodicity = fields.Str(required=True)
+    question_labels = fields.Dict(required=True)
+    survey_codes = fields.Dict(required=True)
+    statuses = fields.Dict(required=True)
 
 
 def lambda_handler(event, context):
@@ -12,64 +29,65 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: Dict with "success" and "data" or "success and "error".
     """
-    current_module = "Results Data Ingest - Method"
+    current_module = "Results Data Ingest - Method."
     error_message = ""
-    logger = logging.getLogger("Results Data Ingest")
+    logger = logging.getLogger("Results Data Ingest.")
     logger.setLevel(10)
-    # Define run_id outside of try block
+    # Define run_id outside of try block.
     run_id = 0
     try:
         logger.info("Retrieving data from take on file...")
         # Retrieve run_id before input validation
-        # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['run_id']
+        # Because it is used in exception handling.
+        run_id = event["RuntimeVariables"]["run_id"]
 
-        # Extract configuration variables
-        period = event['RuntimeVariables']['period']
-        periodicity = event['RuntimeVariables']['periodicity']
+        # Extract runtime variables.
+        runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
+        period = runtime_variables["period"]
+        periodicity = runtime_variables["periodicity"]
         previous_period = general_functions.calculate_adjacent_periods(period,
                                                                        periodicity)
-        question_labels = event['RuntimeVariables']['question_labels']
-        survey_codes = event['RuntimeVariables']['survey_codes']
-        statuses = event['RuntimeVariables']['statuses']
+        question_labels = runtime_variables["question_labels"]
+        survey_codes = runtime_variables["survey_codes"]
+        statuses = runtime_variables["statuses"]
 
-        input_json = event['RuntimeVariables']['data']
+        input_json = event["RuntimeVariables"]["data"]
         output_json = []
 
-        for survey in input_json['data']['allSurveys']['nodes']:
-            if survey['survey'] in survey_codes:
-                for contributor in survey['contributorsBySurvey']['nodes']:
-                    if contributor['period'] in (period, previous_period):
+        for survey in input_json["data"]["allSurveys"]["nodes"]:
+            if survey["survey"] in survey_codes:
+                for contributor in survey["contributorsBySurvey"]["nodes"]:
+                    if contributor["period"] in (period, previous_period):
                         out_contrib = {}
 
-                        # basic contributor information
-                        out_contrib['survey'] = survey_codes[contributor['survey']]
-                        out_contrib['period'] = str(contributor['period'])
-                        out_contrib['responder_id'] = str(contributor['reference'])
-                        out_contrib['gor_code'] = contributor['region']
-                        out_contrib['enterprise_reference'] = str(
-                            contributor['enterprisereference'])
-                        out_contrib['enterprise_name'] = contributor['enterprisename']
+                        # Basic contributor information.
+                        out_contrib["survey"] = survey_codes[contributor["survey"]]
+                        out_contrib["period"] = str(contributor["period"])
+                        out_contrib["responder_id"] = str(contributor["reference"])
+                        out_contrib["gor_code"] = contributor["region"]
+                        out_contrib["enterprise_reference"] = str(
+                            contributor["enterprisereference"])
+                        out_contrib["enterprise_name"] = contributor["enterprisename"]
 
-                        # prepopulate default question answers
+                        # Pre-populate default question answers.
                         for expected_question in question_labels.keys():
                             out_contrib[question_labels[expected_question]] = 0
 
-                        # where contributors provided an aswer, use it instead
-                        for question in contributor['responsesByReferenceAndPeriodAndSurvey']['nodes']:  # noqa: E501
-                            if question['questioncode'] in question_labels.keys() and\
-                               question['response'].isnumeric():
-                                out_contrib[question_labels[question['questioncode']]]\
-                                    = int(question['response'])
+                        # Where contributors provided an aswer, use it instead.
+                        for question in contributor["responsesByReferenceAndPeriodAndSurvey"]["nodes"]:  # noqa: E501
+                            if question["questioncode"] in question_labels.keys() and\
+                               question["response"].isnumeric():
+                                out_contrib[question_labels[question["questioncode"]]]\
+                                    = int(question["response"])
 
-                        # convert the response statuses to types,
+                        # Convert the response statuses to types,
                         # used by results to check if imputation should run
                         # assume all unknown statuses need to be imputed
-                        # (this may change after further cross-team talks)
-                        if contributor['status'] in statuses:
-                            out_contrib['response_type'] = statuses[contributor['status']]
+                        # (this may change after further cross-team talks).
+                        if contributor["status"] in statuses:
+                            out_contrib["response_type"] = statuses[contributor["status"]]
                         else:
-                            out_contrib['response_type'] = 1
+                            out_contrib["response_type"] = 1
 
                         output_json.append(out_contrib)
 
@@ -85,5 +103,5 @@ def lambda_handler(event, context):
             return {"success": False, "error": error_message}
 
     logger.info("Successfully completed module: " + current_module)
-    final_output['success'] = True
+    final_output["success"] = True
     return final_output
