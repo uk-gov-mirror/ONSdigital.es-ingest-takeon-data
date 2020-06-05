@@ -8,11 +8,6 @@ from marshmallow import EXCLUDE, Schema, fields
 
 
 class EnvironmentSchema(Schema):
-    """
-    Schema to ensure that environment variables are present and in the correct format.
-    These variables are expected by the method, and it will fail to run if not provided.
-    :return: None
-    """
 
     class Meta:
         unknown = EXCLUDE
@@ -28,17 +23,13 @@ class EnvironmentSchema(Schema):
 
 
 class IngestionParamsSchema(Schema):
+
     question_labels = fields.Dict(required=True)
     survey_codes = fields.Dict(required=True)
     statuses = fields.Dict(required=True)
 
 
 class RuntimeSchema(Schema):
-    """
-    Schema to ensure that runtime variables are present and in the correct format.
-    These variables are expected by the method, and it will fail to run if not provided.
-    :return: None
-    """
 
     class Meta:
         unknown = EXCLUDE
@@ -48,7 +39,7 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     in_file_name = fields.Str(required=True)
-    ingestion_parameters = fields.Nested(IngestionParamsSchema)
+    ingestion_parameters = fields.Nested(IngestionParamsSchema, required=True)
     location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     outgoing_message_group_id = fields.Str(required=True)
@@ -79,8 +70,9 @@ def lambda_handler(event, context):
         # Because it is used in exception handling.
         run_id = event["RuntimeVariables"]["run_id"]
 
-        # Load environment variables.
+        # Load variables.
         environment_variables = EnvironmentSchema().load(os.environ)
+        runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
         logger.info("Validated parameters.")
 
         # Environment Variables.
@@ -90,7 +82,6 @@ def lambda_handler(event, context):
         results_bucket_name = environment_variables["results_bucket_name"]
 
         # Runtime Variables.
-        runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
         in_file_name = runtime_variables["in_file_name"]
         location = runtime_variables["location"]
         out_file_name = runtime_variables["out_file_name"]
