@@ -55,7 +55,7 @@ wrangler_runtime_variables = {"RuntimeVariables": {
 
 method_runtime_variables = {
     "RuntimeVariables": {
-        "data": None,
+        "data": {},
         "period": "201809",
         "periodicity": "03",
         "run_id": "bob",

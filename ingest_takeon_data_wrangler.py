@@ -27,6 +27,12 @@ class EnvironmentSchema(Schema):
     takeon_bucket_name = fields.Str(required=True)
 
 
+class IngestionParamsSchema(Schema):
+    question_labels = fields.Dict(required=True)
+    survey_codes = fields.Dict(required=True)
+    statuses = fields.Dict(required=True)
+
+
 class RuntimeSchema(Schema):
     """
     Schema to ensure that runtime variables are present and in the correct format.
@@ -38,11 +44,11 @@ class RuntimeSchema(Schema):
         unknown = EXCLUDE
 
     def handle_error(self, e, data, **kwargs):
-        logging.error(f"Error validating environment params: {e}")
-        raise ValueError(f"Error validating environment params: {e}")
+        logging.error(f"Error validating runtime params: {e}")
+        raise ValueError(f"Error validating runtime params: {e}")
 
     in_file_name = fields.Str(required=True)
-    ingestion_parameters = fields.Dict(required=True)
+    ingestion_parameters = fields.Nested(IngestionParamsSchema)
     location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     outgoing_message_group_id = fields.Str(required=True)
@@ -50,7 +56,6 @@ class RuntimeSchema(Schema):
     periodicity = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     sqs_queue_url = fields.Str(required=True)
-
 
 
 def lambda_handler(event, context):

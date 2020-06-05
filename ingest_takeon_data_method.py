@@ -14,6 +14,7 @@ class RuntimeSchema(Schema):
         logging.error(f"Error validating runtime params: {e}")
         raise ValueError(f"Error validating runtime params: {e}")
 
+    data = fields.Dict(required=True)
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
     question_labels = fields.Dict(required=True)
@@ -52,7 +53,7 @@ def lambda_handler(event, context):
         question_labels = runtime_variables["question_labels"]
         survey_codes = runtime_variables["survey_codes"]
         statuses = runtime_variables["statuses"]
-        input_json = event["RuntimeVariables"]["data"]
+        input_json = runtime_variables["data"]
 
         logger.info("Retrieved configuration variables.")
 
