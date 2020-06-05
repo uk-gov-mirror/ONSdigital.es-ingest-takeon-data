@@ -30,7 +30,7 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: Dict with "success" and "data" or "success and "error".
     """
-    current_module = "Results Data Ingest - Method"
+    current_module = "Results Data Ingest - Method."
     error_message = ""
     logger = logging.getLogger("Results Data Ingest.")
     logger.setLevel(10)

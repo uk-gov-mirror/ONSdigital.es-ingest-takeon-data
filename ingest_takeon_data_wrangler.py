@@ -66,7 +66,7 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: JSON String - {"success": boolean, "checkpoint"/"error": integer/string}
     """
-    current_module = "Results Data Ingest - Wrangler"
+    current_module = "Results Data Ingest - Wrangler."
     error_message = ""
     logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
@@ -126,10 +126,10 @@ def lambda_handler(event, context):
         method_return = lambda_client.invoke(
          FunctionName=method_name, Payload=json.dumps(payload)
         )
-        logger.info("Successfully invoked method")
+        logger.info("Successfully invoked method.")
 
         json_response = json.loads(method_return.get("Payload").read().decode("utf-8"))
-        logger.info("JSON extracted from method response")
+        logger.info("JSON extracted from method response.")
 
         if not json_response["success"]:
             raise exception_classes.MethodFailure(json_response["error"])
@@ -140,7 +140,7 @@ def lambda_handler(event, context):
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
-        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Ingest")
+        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Ingest.")
 
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module,
