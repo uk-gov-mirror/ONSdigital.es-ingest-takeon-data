@@ -11,8 +11,8 @@ class RuntimeSchema(Schema):
         unknown = EXCLUDE
 
     def handle_error(self, e, data, **kwargs):
-        logging.error(f"Error validating runtime params: {e}.")
-        raise ValueError(f"Error validating runtime params: {e}.")
+        logging.error(f"Error validating runtime params: {e}")
+        raise ValueError(f"Error validating runtime params: {e}")
 
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
@@ -29,20 +29,22 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: Dict with "success" and "data" or "success and "error".
     """
-    current_module = "Results Data Ingest - Method."
+    current_module = "Results Data Ingest - Method"
     error_message = ""
     logger = logging.getLogger("Results Data Ingest.")
     logger.setLevel(10)
     # Define run_id outside of try block.
     run_id = 0
     try:
-        logger.info("Retrieving data from take on file...")
+        logger.info("Retrieving data from take on file.")
         # Retrieve run_id before input validation
         # Because it is used in exception handling.
         run_id = event["RuntimeVariables"]["run_id"]
 
         # Extract runtime variables.
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
+        logger.info("Validated parameters.")
+
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
         previous_period = general_functions.calculate_adjacent_periods(period,
@@ -50,8 +52,10 @@ def lambda_handler(event, context):
         question_labels = runtime_variables["question_labels"]
         survey_codes = runtime_variables["survey_codes"]
         statuses = runtime_variables["statuses"]
-
         input_json = event["RuntimeVariables"]["data"]
+
+        logger.info("Retrieved configuration variables.")
+
         output_json = []
 
         for survey in input_json["data"]["allSurveys"]["nodes"]:

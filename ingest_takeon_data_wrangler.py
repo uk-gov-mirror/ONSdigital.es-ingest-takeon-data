@@ -18,8 +18,8 @@ class EnvironmentSchema(Schema):
         unknown = EXCLUDE
 
     def handle_error(self, e, data, **kwargs):
-        logging.error(f"Error validating environment params: {e}.")
-        raise ValueError(f"Error validating environment params: {e}.")
+        logging.error(f"Error validating environment params: {e}")
+        raise ValueError(f"Error validating environment params: {e}")
 
     checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)
@@ -33,14 +33,16 @@ class RuntimeSchema(Schema):
     These variables are expected by the method, and it will fail to run if not provided.
     :return: None
     """
+
     class Meta:
         unknown = EXCLUDE
 
     def handle_error(self, e, data, **kwargs):
-        logging.error(f"Error validating environment params: {e}.")
-        raise ValueError(f"Error validating environment params: {e}.")
+        logging.error(f"Error validating environment params: {e}")
+        raise ValueError(f"Error validating environment params: {e}")
 
     in_file_name = fields.Str(required=True)
+    ingestion_parameters = fields.Dict(required=True)
     location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     outgoing_message_group_id = fields.Str(required=True)
@@ -48,7 +50,7 @@ class RuntimeSchema(Schema):
     periodicity = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     sqs_queue_url = fields.Str(required=True)
-    ingestion_parameters = fields.Dict(required=True)
+
 
 
 def lambda_handler(event, context):
@@ -59,9 +61,9 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: JSON String - {"success": boolean, "checkpoint"/"error": integer/string}
     """
-    current_module = "Results Data Ingest - Wrangler."
+    current_module = "Results Data Ingest - Wrangler"
     error_message = ""
-    logger = logging.getLogger("Results Data Ingest.")
+    logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
 
     # Define run_id outside of try block.
@@ -72,8 +74,9 @@ def lambda_handler(event, context):
         # Because it is used in exception handling.
         run_id = event["RuntimeVariables"]["run_id"]
 
-        # Set up client.
+        # Load environment variables.
         environment_variables = EnvironmentSchema().load(os.environ)
+        logger.info("Validated parameters.")
 
         # Environment Variables.
         checkpoint = environment_variables["checkpoint"]
@@ -93,13 +96,14 @@ def lambda_handler(event, context):
         sqs_queue_url = runtime_variables["sqs_queue_url"]
         ingestion_parameters = runtime_variables["ingestion_parameters"]
 
-        logger.info("Validated environment and runtime parameters.")
+        logger.info("Retrieved configuration variables.")
+        # Set up client.
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
         input_file = aws_functions.read_from_s3(takeon_bucket_name,
                                                 in_file_name,
                                                 file_extension="")
 
-        logger.info("Read from S3.")
+        logger.info("Read from S3")
 
         payload = {
 
@@ -117,10 +121,10 @@ def lambda_handler(event, context):
         method_return = lambda_client.invoke(
          FunctionName=method_name, Payload=json.dumps(payload)
         )
-        logger.info("Successfully invoked method.")
+        logger.info("Successfully invoked method")
 
         json_response = json.loads(method_return.get("Payload").read().decode("utf-8"))
-        logger.info("JSON extracted from method response.")
+        logger.info("JSON extracted from method response")
 
         if not json_response["success"]:
             raise exception_classes.MethodFailure(json_response["error"])
@@ -131,7 +135,7 @@ def lambda_handler(event, context):
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
-        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Ingest.")
+        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Ingest")
 
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module,
