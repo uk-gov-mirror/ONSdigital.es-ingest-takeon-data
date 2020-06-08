@@ -16,30 +16,29 @@ wrangler_environment_variables = {
                 # bucket_name included for test library to use:
                 "bucket_name": "test_bucket",
                 "method_name": "mock-function",
-                "checkpoint": "0",
-                "sqs_queue_url": "mock-queue-url"
+                "checkpoint": "0"
             }
 
-wrangler_runtime_variables = {'RuntimeVariables': {
+wrangler_runtime_variables = {"RuntimeVariables": {
     "run_id": "bob",
-    "queue_url": "Earl",
     "in_file_name": "mock-file",
     "out_file_name": "test_wrangler_prepared_output.json",
     "outgoing_message_group_id": "mock_out_group",
     "period": "201809",
     "periodicity": "03",
     "sns_topic_arn": "mock-topic-arn",
+    "sqs_queue_url": "mock-sqs-url",
     "location": "Here",
     "ingestion_parameters": {
         "question_labels": {
-            '0601': 'Q601_asphalting_sand',
-            '0602': 'Q602_building_soft_sand',
-            '0603': 'Q603_concreting_sand',
-            '0604': 'Q604_bituminous_gravel',
-            '0605': 'Q605_concreting_gravel',
-            '0606': 'Q606_other_gravel',
-            '0607': 'Q607_constructional_fill',
-            '0608': 'Q608_total'
+            "0601": "Q601_asphalting_sand",
+            "0602": "Q602_building_soft_sand",
+            "0603": "Q603_concreting_sand",
+            "0604": "Q604_bituminous_gravel",
+            "0605": "Q605_concreting_gravel",
+            "0606": "Q606_other_gravel",
+            "0607": "Q607_constructional_fill",
+            "0608": "Q608_total"
         },
         "survey_codes": {
             "0066": "066",
@@ -56,19 +55,19 @@ wrangler_runtime_variables = {'RuntimeVariables': {
 
 method_runtime_variables = {
     "RuntimeVariables": {
-        "data": None,
+        "data": {},
         "period": "201809",
         "periodicity": "03",
         "run_id": "bob",
         "question_labels": {
-            '0601': 'Q601_asphalting_sand',
-            '0602': 'Q602_building_soft_sand',
-            '0603': 'Q603_concreting_sand',
-            '0604': 'Q604_bituminous_gravel',
-            '0605': 'Q605_concreting_gravel',
-            '0606': 'Q606_other_gravel',
-            '0607': 'Q607_constructional_fill',
-            '0608': 'Q608_total'
+            "0601": "Q601_asphalting_sand",
+            "0602": "Q602_building_soft_sand",
+            "0603": "Q603_concreting_sand",
+            "0604": "Q604_bituminous_gravel",
+            "0605": "Q605_concreting_gravel",
+            "0606": "Q606_other_gravel",
+            "0607": "Q607_constructional_fill",
+            "0608": "Q608_total"
         },
         "survey_codes": {
             "0066": "066",
@@ -110,7 +109,7 @@ def test_client_error(which_lambda, which_runtime_variables,
          [], "ingest_takeon_data_method.general_functions.calculate_adjacent_periods",
          "'Exception'", test_generic_library.method_assert),
         (lambda_wrangler_function, wrangler_runtime_variables,
-         wrangler_environment_variables, "ingest_takeon_data_wrangler.InputSchema",
+         wrangler_environment_variables, "ingest_takeon_data_wrangler.EnvironmentSchema",
          "'Exception'", test_generic_library.wrangler_assert)
     ])
 def test_general_error(which_lambda, which_runtime_variables,
@@ -164,9 +163,10 @@ def test_method_error(mock_s3_get):
 @pytest.mark.parametrize(
     "which_lambda,expected_message,assertion,which_environment_variables",
     [
-     (lambda_wrangler_function,
-      "Error validating environment param",
-      test_generic_library.wrangler_assert, {})])
+        (lambda_method_function, "Error validating runtime params",
+         test_generic_library.method_assert, {}),
+        (lambda_wrangler_function, "Error validating environment params",
+         test_generic_library.wrangler_assert, {})])
 def test_value_error(which_lambda, expected_message, assertion,
                      which_environment_variables):
     test_generic_library.value_error(

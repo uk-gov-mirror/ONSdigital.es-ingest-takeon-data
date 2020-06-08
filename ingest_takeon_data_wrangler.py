@@ -4,19 +4,49 @@ import os
 
 import boto3
 from es_aws_functions import aws_functions, exception_classes, general_functions
-from marshmallow import Schema, fields
+from marshmallow import EXCLUDE, Schema, fields
 
 
-class InputSchema(Schema):
-    """
-    Schema to ensure that environment variables are present and in the correct format.
-    These variables are expected by the method, and it will fail to run if not provided.
-    :return: None
-    """
+class EnvironmentSchema(Schema):
+
+    class Meta:
+        unknown = EXCLUDE
+
+    def handle_error(self, e, data, **kwargs):
+        logging.error(f"Error validating environment params: {e}")
+        raise ValueError(f"Error validating environment params: {e}")
+
     checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)
     results_bucket_name = fields.Str(required=True)
     takeon_bucket_name = fields.Str(required=True)
+
+
+class IngestionParamsSchema(Schema):
+
+    question_labels = fields.Dict(required=True)
+    survey_codes = fields.Dict(required=True)
+    statuses = fields.Dict(required=True)
+
+
+class RuntimeSchema(Schema):
+
+    class Meta:
+        unknown = EXCLUDE
+
+    def handle_error(self, e, data, **kwargs):
+        logging.error(f"Error validating runtime params: {e}")
+        raise ValueError(f"Error validating runtime params: {e}")
+
+    in_file_name = fields.Str(required=True)
+    ingestion_parameters = fields.Nested(IngestionParamsSchema, required=True)
+    location = fields.Str(required=True)
+    out_file_name = fields.Str(required=True)
+    outgoing_message_group_id = fields.Str(required=True)
+    period = fields.Str(required=True)
+    periodicity = fields.Str(required=True)
+    sns_topic_arn = fields.Str(required=True)
+    sqs_queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -27,49 +57,49 @@ def lambda_handler(event, context):
     :param context: Context object
     :return: JSON String - {"success": boolean, "checkpoint"/"error": integer/string}
     """
-    current_module = "Results Data Ingest - Wrangler"
+    current_module = "Results Data Ingest - Wrangler."
     error_message = ""
     logger = logging.getLogger("Results Data Ingest")
     logger.setLevel(10)
 
-    # Define run_id outside of try block
+    # Define run_id outside of try block.
     run_id = 0
     try:
-        logger.info("Running Results Data Ingest...")
+        logger.info("Data Ingest Wrangler Begun.")
         # Retrieve run_id before input validation
-        # Because it is used in exception handling
-        run_id = event['RuntimeVariables']['run_id']
+        # Because it is used in exception handling.
+        run_id = event["RuntimeVariables"]["run_id"]
 
-        # ENV vars
-        schema = InputSchema()
-        config, errors = schema.load(os.environ)
-        if errors:
-            raise ValueError(f"Error validating environment parameters: {errors}")
+        # Load variables.
+        environment_variables = EnvironmentSchema().load(os.environ)
+        runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
+        logger.info("Validated parameters.")
 
-        # Environment Variables
-        checkpoint = config['checkpoint']
-        takeon_bucket_name = config['takeon_bucket_name']
-        method_name = config['method_name']
-        results_bucket_name = config['results_bucket_name']
+        # Environment Variables.
+        checkpoint = environment_variables["checkpoint"]
+        takeon_bucket_name = environment_variables["takeon_bucket_name"]
+        method_name = environment_variables["method_name"]
+        results_bucket_name = environment_variables["results_bucket_name"]
 
-        # Runtime Variables
-        in_file_name = event['RuntimeVariables']['in_file_name']
-        location = event['RuntimeVariables']['location']
-        out_file_name = event['RuntimeVariables']['out_file_name']
-        outgoing_message_group_id = event['RuntimeVariables']["outgoing_message_group_id"]
-        period = event['RuntimeVariables']['period']
-        periodicity = event['RuntimeVariables']['periodicity']
-        sns_topic_arn = event['RuntimeVariables']['sns_topic_arn']
-        sqs_queue_url = event['RuntimeVariables']['queue_url']
-        ingestion_parameters = event["RuntimeVariables"]["ingestion_parameters"]
+        # Runtime Variables.
+        in_file_name = runtime_variables["in_file_name"]
+        location = runtime_variables["location"]
+        out_file_name = runtime_variables["out_file_name"]
+        outgoing_message_group_id = runtime_variables["outgoing_message_group_id"]
+        period = runtime_variables["period"]
+        periodicity = runtime_variables["periodicity"]
+        sns_topic_arn = runtime_variables["sns_topic_arn"]
+        sqs_queue_url = runtime_variables["sqs_queue_url"]
+        ingestion_parameters = runtime_variables["ingestion_parameters"]
 
-        logger.info("Validated environment parameters.")
-        lambda_client = boto3.client('lambda', region_name='eu-west-2')
+        logger.info("Retrieved configuration variables.")
+        # Set up client.
+        lambda_client = boto3.client("lambda", region_name="eu-west-2")
         input_file = aws_functions.read_from_s3(takeon_bucket_name,
                                                 in_file_name,
                                                 file_extension="")
 
-        logger.info("Read from S3.")
+        logger.info("Read from S3")
 
         payload = {
 
@@ -89,11 +119,11 @@ def lambda_handler(event, context):
         )
         logger.info("Successfully invoked method.")
 
-        json_response = json.loads(method_return.get('Payload').read().decode("utf-8"))
+        json_response = json.loads(method_return.get("Payload").read().decode("utf-8"))
         logger.info("JSON extracted from method response.")
 
         if not json_response["success"]:
-            raise exception_classes.MethodFailure(json_response['error'])
+            raise exception_classes.MethodFailure(json_response["error"])
 
         aws_functions.save_data(results_bucket_name, out_file_name,
                                 json_response["data"], sqs_queue_url,
