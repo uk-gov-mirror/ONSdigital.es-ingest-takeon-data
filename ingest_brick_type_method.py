@@ -28,16 +28,29 @@ def lambda_handler(event, context):
         # Extract configuration variables
         brick_questions = event['RuntimeVariables']['brick_questions']
         brick_types = event['RuntimeVariables']['brick_types']
+        brick_type_column = event['RuntimeVariables']['brick_type_column']
 
         input_json = event['RuntimeVariables']['data']
         output_json = []
 
-        # TODO
-        # for each respondent
-        #   generate all brick questions with 0s
-        #   get the brick type of responder
-        #   replace this type with the values from the 'shared colum'
-        #   remove the 'shared column'
+        # Apply changes to every responder and every brick type
+        for respondent in input_json:
+            for this_type in brick_types:
+
+                # When it's not the brick type this responder supplied, fill with 0s.
+                if respondent[brick_type_column] != this_type:
+                    for this_question in brick_questions:
+                        respondent[brick_questions[this_question]] = 0
+
+                # When it's the same as responder supplied, use their data.
+                else:
+                    for this_question in brick_questions:
+                        respondent[brick_questions[this_question]] =\
+                             respondent[this_question]
+
+            # Remove the 'shared' questions.
+            for this_question in brick_questions:
+                respondent.pop(this_question, None)
 
         logger.info("Successfully expanded brick data.")
         final_output = {"data": json.dumps(output_json)}
