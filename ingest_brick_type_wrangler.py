@@ -23,9 +23,12 @@ class EnvironmentSchema(Schema):
 
 class IngestionParamsSchema(Schema):
 
-    question_labels = fields.Dict(required=True)
-    survey_codes = fields.Dict(required=True)
-    statuses = fields.Dict(required=True)
+    class Meta:
+        unknown = EXCLUDE
+
+    brick_questions = fields.Dict(required=True)
+    brick_types = fields.List(fields.Int(required=True))
+    brick_type_column = fields.Str(required=True)
 
 
 class RuntimeSchema(Schema):
@@ -42,8 +45,6 @@ class RuntimeSchema(Schema):
     location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     outgoing_message_group_id = fields.Str(required=True)
-    period = fields.Str(required=True)
-    periodicity = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     sqs_queue_url = fields.Str(required=True)
 
@@ -86,8 +87,8 @@ def lambda_handler(event, context):
         out_file_name = runtime_variables["out_file_name"]
         outgoing_message_group_id = runtime_variables["outgoing_message_group_id"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        sqs_queue_url = runtime_variables["queue_url"]
-        ingestion_parameters = event["RuntimeVariables"]["ingestion_parameters"]
+        sqs_queue_url = runtime_variables["sqs_queue_url"]
+        ingestion_parameters = runtime_variables["ingestion_parameters"]
 
         logger.info("Validated environment parameters.")
         # Set up client.
@@ -104,7 +105,8 @@ def lambda_handler(event, context):
                 "data": json.loads(input_file),
                 "run_id": run_id,
                 "brick_questions": ingestion_parameters["brick_questions"],
-                "brick_types": ingestion_parameters["brick_types"]
+                "brick_types": ingestion_parameters["brick_types"],
+                "brick_type_column": ingestion_parameters["brick_type_column"]
             },
         }
 

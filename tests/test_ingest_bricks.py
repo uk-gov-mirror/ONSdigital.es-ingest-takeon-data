@@ -55,6 +55,12 @@ wrangler_runtime_variables = {"RuntimeVariables": {
             "Clear": 2,
             "Overridden": 2
         },
+        "brick_types": [
+            2,
+            3,
+            4
+        ],
+        "brick_type_column": "brick_type",
         "brick_questions": {
             2: {
                 'opening_stock_commons': "clay_opening_stock_commons",
@@ -105,7 +111,7 @@ wrangler_runtime_variables = {"RuntimeVariables": {
 
 method_runtime_variables = {
     "RuntimeVariables": {
-        "data": None,
+        "data": {},
         "run_id": "bob",
         "question_labels": {
             '0001': 'opening_stock_commons',
@@ -134,6 +140,12 @@ method_runtime_variables = {
             "Clear": 2,
             "Overridden": 2
         },
+        "brick_types": [
+            2,
+            3,
+            4
+        ],
+        "brick_type_column": "brick_type",
         "brick_questions": {
             2: {
                 'opening_stock_commons': "clay_opening_stock_commons",

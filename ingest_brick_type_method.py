@@ -16,7 +16,7 @@ class RuntimeSchema(Schema):
 
     data = fields.Dict(required=True)
     brick_questions = fields.Dict(required=True)
-    brick_types = fields.Dict(required=True)
+    brick_types = fields.List(fields.Int(required=True))
     brick_type_column = fields.Str(required=True)
 
 
