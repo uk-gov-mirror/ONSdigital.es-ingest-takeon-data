@@ -2,6 +2,22 @@ import json
 import logging
 
 from es_aws_functions import general_functions
+from marshmallow import EXCLUDE, Schema, fields
+
+
+class RuntimeSchema(Schema):
+
+    class Meta:
+        unknown = EXCLUDE
+
+    def handle_error(self, e, data, **kwargs):
+        logging.error(f"Error validating runtime params: {e}")
+        raise ValueError(f"Error validating runtime params: {e}")
+
+    data = fields.Dict(required=True)
+    brick_questions = fields.Dict(required=True)
+    brick_types = fields.Dict(required=True)
+    brick_type_column = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -25,12 +41,15 @@ def lambda_handler(event, context):
         # Because it is used in exception handling
         run_id = event['RuntimeVariables']['run_id']
 
-        # Extract configuration variables
-        brick_questions = event['RuntimeVariables']['brick_questions']
-        brick_types = event['RuntimeVariables']['brick_types']
-        brick_type_column = event['RuntimeVariables']['brick_type_column']
+        # Extract runtime variables.
+        runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
+        logger.info("Validated parameters.")
 
-        input_json = event['RuntimeVariables']['data']
+        brick_questions = runtime_variables['brick_questions']
+        brick_types = runtime_variables['brick_types']
+        brick_type_column = runtime_variables['brick_type_column']
+        input_json = runtime_variables['data']
+
         output_json = []
 
         # Apply changes to every responder and every brick type
