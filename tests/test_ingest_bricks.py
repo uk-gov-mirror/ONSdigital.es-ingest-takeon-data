@@ -108,7 +108,6 @@ wrangler_runtime_variables = {"RuntimeVariables": {
     }
 }}
 
-
 method_runtime_variables = {
     "RuntimeVariables": {
         "data": {},
@@ -147,7 +146,7 @@ method_runtime_variables = {
         ],
         "brick_type_column": "brick_type",
         "brick_questions": {
-            2: {
+            "2": {
                 'opening_stock_commons': "clay_opening_stock_commons",
                 'opening_stock_facings': "clay_opening_stock_facings",
                 'opening_stock_engineering': "clay_opening_stock_engineering",
@@ -161,7 +160,7 @@ method_runtime_variables = {
                 'closing_stock_facings': "clay_closing_stock_facings",
                 'closing_stock_engineering': "clay_closing_stock_engineering"
             },
-            3: {
+            "3": {
                 'opening_stock_commons': "concrete_opening_stock_commons",
                 'opening_stock_facings': "concrete_opening_stock_facings",
                 'opening_stock_engineering': "concrete_opening_stock_engineering",
@@ -175,7 +174,7 @@ method_runtime_variables = {
                 'closing_stock_facings': "concrete_closing_stock_facings",
                 'closing_stock_engineering': "concrete_closing_stock_engineering"
             },
-            4: {
+            "4": {
                 'opening_stock_commons': "sandlime_opening_stock_commons",
                 'opening_stock_facings': "sandlime_opening_stock_facings",
                 'opening_stock_engineering': "sandlime_opening_stock_engineering",
@@ -218,10 +217,10 @@ def test_client_error(which_lambda, which_runtime_variables,
     "expected_message,assertion",
     [
         (lambda_method_function, method_runtime_variables,
-         [], "ingest_takeon_data_method.general_functions.calculate_adjacent_periods",
+         [], "ingest_brick_type_method.RuntimeSchema",
          "'Exception'", test_generic_library.method_assert),
         (lambda_wrangler_function, wrangler_runtime_variables,
-         wrangler_environment_variables, "ingest_takeon_data_wrangler.EnvironmentSchema",
+         wrangler_environment_variables, "ingest_brick_type_wrangler.EnvironmentSchema",
          "'Exception'", test_generic_library.wrangler_assert)
     ])
 def test_general_error(which_lambda, which_runtime_variables,
@@ -233,7 +232,7 @@ def test_general_error(which_lambda, which_runtime_variables,
 
 
 @mock_s3
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3',
+@mock.patch('ingest_brick_type_wrangler.aws_functions.read_from_s3',
             return_value=json.dumps({"test": "test"}))
 def test_incomplete_read_error(mock_s3_get):
     file_list = ["test_ingest_input.json"]
@@ -241,7 +240,7 @@ def test_incomplete_read_error(mock_s3_get):
                                                wrangler_runtime_variables,
                                                wrangler_environment_variables,
                                                file_list,
-                                               "ingest_takeon_data_wrangler",
+                                               "ingest_brick_type_wrangler",
                                                "IncompleteReadError")
 
 
@@ -260,7 +259,7 @@ def test_key_error(which_lambda, which_environment_variables,
 
 
 @mock_s3
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3',
+@mock.patch('ingest_brick_type_wrangler.aws_functions.read_from_s3',
             return_value=json.dumps({"test": "test"}))
 def test_method_error(mock_s3_get):
     file_list = ["test_ingest_input.json"]
@@ -269,7 +268,7 @@ def test_method_error(mock_s3_get):
                                                wrangler_runtime_variables,
                                                wrangler_environment_variables,
                                                file_list,
-                                               "ingest_takeon_data_wrangler")
+                                               "ingest_brick_type_wrangler")
 
 
 @pytest.mark.parametrize(
@@ -298,11 +297,11 @@ def test_method_success():
     :param None
     :return Test Pass/Fail
     """
-    with open("tests/fixtures/test_method_prepared_output.json", "r") as file_1:
+    with open("tests/fixtures/test_bricks_method_prepared_output.json", "r") as file_1:
         file_data = file_1.read()
     prepared_data = pd.DataFrame(json.loads(file_data))
 
-    with open("tests/fixtures/test_ingest_input.json", "r") as file_2:
+    with open("tests/fixtures/test_bricks_method_input.json", "r") as file_2:
         test_data = file_2.read()
     method_runtime_variables["RuntimeVariables"]["data"] = json.loads(test_data)
 
@@ -316,26 +315,26 @@ def test_method_success():
 
 
 @mock_s3
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3')
+@mock.patch('ingest_brick_type_wrangler.aws_functions.read_from_s3')
 def test_wrangler_success_passed(mock_s3_get):
     """
     Runs the wrangler function.
     :param mock_s3_get - Replacement Function For The Data Retrieval AWS Functionality.
     :return Test Pass/Fail
     """
-    with open("tests/fixtures/test_ingest_input.json", "r") as file:
+    with open("tests/fixtures/test_bricks_method_input.json", "r") as file:
         wrangler_input = json.dumps(file.read())
     mock_s3_get.return_value = wrangler_input
     bucket_name = wrangler_environment_variables["bucket_name"]
     client = test_generic_library.create_bucket(bucket_name)
 
-    file_list = ["test_ingest_input.json"]
+    file_list = ["test_bricks_method_input.json"]
 
     test_generic_library.upload_files(client, bucket_name, file_list)
 
     with mock.patch.dict(lambda_wrangler_function.os.environ,
                          wrangler_environment_variables):
-        with mock.patch("ingest_takeon_data_wrangler.boto3.client") as mock_client:
+        with mock.patch("ingest_brick_type_wrangler.boto3.client") as mock_client:
             mock_client_object = mock.Mock()
             mock_client.return_value = mock_client_object
 
@@ -351,20 +350,21 @@ def test_wrangler_success_passed(mock_s3_get):
                     wrangler_runtime_variables, test_generic_library.context_object
                 )
 
-    with open("tests/fixtures/test_ingest_input.json", "r") as file_2:
+    with open("tests/fixtures/test_bricks_method_input.json", "r") as file_2:
         test_data_prepared = file_2.read()
     prepared_data = pd.DataFrame(json.loads(test_data_prepared))
 
-    with open("tests/fixtures/test_wrangler_to_method_input.json", "r") as file_3:
+    with open("tests/fixtures/test_bricks_wrangler_to_method_input.json", "r") as file_3:
         test_data_produced = file_3.read()
     produced_data = pd.DataFrame(json.loads(test_data_produced))
 
     # Compares the data.
     assert_frame_equal(produced_data, prepared_data)
 
-    with open("tests/fixtures/test_wrangler_to_method_runtime.json", "r") as file_4:
+    with open("tests/fixtures/test_bricks_wrangler_to_method_runtime.json", "r") as file_4:
         test_dict_prepared = file_4.read()
     produced_dict = json.loads(test_dict_prepared)
+
 
     # Ensures data is not in the RuntimeVariables and then compares.
     method_runtime_variables["RuntimeVariables"]["data"] = None
@@ -372,8 +372,8 @@ def test_wrangler_success_passed(mock_s3_get):
 
 
 @mock_s3
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3')
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.save_data',
+@mock.patch('ingest_brick_type_wrangler.aws_functions.read_from_s3')
+@mock.patch('ingest_brick_type_wrangler.aws_functions.save_data',
             side_effect=test_generic_library.replacement_save_data)
 def test_wrangler_success_returned(mock_s3_put, mock_s3_get):
     """
@@ -389,7 +389,7 @@ def test_wrangler_success_returned(mock_s3_put, mock_s3_get):
 
     with mock.patch.dict(lambda_wrangler_function.os.environ,
                          wrangler_environment_variables):
-        with mock.patch("ingest_takeon_data_wrangler.boto3.client") as mock_client:
+        with mock.patch("ingest_brick_type_wrangler.boto3.client") as mock_client:
             mock_client_object = mock.Mock()
             mock_client.return_value = mock_client_object
 
