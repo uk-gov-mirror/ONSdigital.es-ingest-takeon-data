@@ -45,8 +45,8 @@ class RuntimeSchema(Schema):
     outgoing_message_group_id = fields.Str(required=True)
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
+    queue_url = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    sqs_queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -89,7 +89,7 @@ def lambda_handler(event, context):
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        sqs_queue_url = runtime_variables["sqs_queue_url"]
+        sqs_queue_url = runtime_variables["queue_url"]
         ingestion_parameters = runtime_variables["ingestion_parameters"]
 
         logger.info("Retrieved configuration variables.")
