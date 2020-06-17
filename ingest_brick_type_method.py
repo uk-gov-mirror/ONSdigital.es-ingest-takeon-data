@@ -23,8 +23,8 @@ class RuntimeSchema(Schema):
 def lambda_handler(event, context):
     """
     This method will take the simple bricks survey data and expand it to have seperate
-     coloumn for each brick type as expceted by the results pipeline. It'll then send it to
-     the Results S3 bucket for further processing.
+     coloumn for each brick type as expceted by the results pipeline. It'll then send it
+     to the Results S3 bucket for further processing.
     :param event: Event object
     :param context: Context object
     :return: Dict with "success" and "data" or "success and "error".

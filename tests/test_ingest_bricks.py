@@ -361,10 +361,9 @@ def test_wrangler_success_passed(mock_s3_get):
     # Compares the data.
     assert_frame_equal(produced_data, prepared_data)
 
-    with open("tests/fixtures/test_bricks_wrangler_to_method_runtime.json", "r") as file_4:
+    with open("tests/fixtures/test_bricks_wrangler_to_method_runtime.json", "r") as file_4: # noqa
         test_dict_prepared = file_4.read()
     produced_dict = json.loads(test_dict_prepared)
-
 
     # Ensures data is not in the RuntimeVariables and then compares.
     method_runtime_variables["RuntimeVariables"]["data"] = None
