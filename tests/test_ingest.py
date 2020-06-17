@@ -26,8 +26,8 @@ wrangler_runtime_variables = {"RuntimeVariables": {
     "outgoing_message_group_id": "mock_out_group",
     "period": "201809",
     "periodicity": "03",
+    "queue_url": "mock-sqs-url",
     "sns_topic_arn": "mock-topic-arn",
-    "sqs_queue_url": "mock-sqs-url",
     "location": "Here",
     "ingestion_parameters": {
         "question_labels": {
