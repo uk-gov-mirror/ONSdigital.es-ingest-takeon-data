@@ -94,8 +94,7 @@ def lambda_handler(event, context):
         # Set up client.
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
         input_file = aws_functions.read_from_s3(results_bucket_name,
-                                                in_file_name,
-                                                file_extension="")
+                                                in_file_name)
 
         logger.info("Read from S3.")
 
