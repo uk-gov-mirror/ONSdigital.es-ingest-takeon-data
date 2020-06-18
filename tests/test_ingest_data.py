@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from es_aws_functions import exception_classes, test_generic_library
 from moto import mock_s3
-from pandas.util.testing import assert_frame_equal
+from pandas.testing import assert_frame_equal
 
 import ingest_takeon_data_method as lambda_method_function
 import ingest_takeon_data_wrangler as lambda_wrangler_function
@@ -26,8 +26,8 @@ wrangler_runtime_variables = {"RuntimeVariables": {
     "outgoing_message_group_id": "mock_out_group",
     "period": "201809",
     "periodicity": "03",
+    "queue_url": "mock-sqs-url",
     "sns_topic_arn": "mock-topic-arn",
-    "sqs_queue_url": "mock-sqs-url",
     "location": "Here",
     "ingestion_parameters": {
         "question_labels": {
