@@ -428,25 +428,48 @@ def test_method_success(which_lambda, input_file, prepared_file, which_runtime_v
 
 @mock_s3
 @mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3')
-def test_wrangler_success_passed(mock_s3_get):
+@pytest.mark.parametrize(
+    "which_lambda,input_file,wrangler_file,runtime_file," +
+    "which_runtime_variables_wrangler,which_runtime_variables_method," +
+    "which_environment_variables,which_file_list,wrangler_boto3",
+    [
+        (lambda_wrangler_function_data, "tests/fixtures/test_ingest_input.json",
+         "tests/fixtures/test_wrangler_to_method_input.json",
+         "tests/fixtures/test_wrangler_to_method_runtime.json",
+         wrangler_runtime_variables_data, method_runtime_variables_data,
+         wrangler_environment_variables, ["test_ingest_input.json"],
+         "ingest_takeon_data_wrangler.boto3.client"),
+        (lambda_wrangler_function_bricks, "tests/fixtures/test_bricks_method_input.json",
+         "tests/fixtures/test_bricks_wrangler_to_method_input.json",
+         "tests/fixtures/test_bricks_wrangler_to_method_runtime.json",
+         wrangler_runtime_variables_bricks, method_runtime_variables_bricks,
+         wrangler_environment_variables, ["test_bricks_method_input.json"],
+         "ingest_brick_type_wrangler.boto3.client")
+    ]
+)
+def test_wrangler_success_passed(mock_s3_get, which_lambda, input_file, wrangler_file,
+                                 runtime_file, which_runtime_variables_wrangler,
+                                 which_runtime_variables_method,
+                                 which_environment_variables, which_file_list,
+                                 wrangler_boto3):
     """
     Runs the wrangler function.
     :param mock_s3_get - Replacement Function For The Data Retrieval AWS Functionality.
     :return Test Pass/Fail
     """
-    with open("tests/fixtures/test_ingest_input.json", "r") as file:
+    with open(input_file, "r") as file:
         wrangler_input = json.dumps(file.read())
     mock_s3_get.return_value = wrangler_input
-    bucket_name = wrangler_environment_variables["bucket_name"]
+    bucket_name = which_environment_variables["bucket_name"]
     client = test_generic_library.create_bucket(bucket_name)
 
-    file_list = ["test_ingest_input.json"]
+    file_list = which_file_list
 
     test_generic_library.upload_files(client, bucket_name, file_list)
 
-    with mock.patch.dict(lambda_wrangler_function_data.os.environ,
-                         wrangler_environment_variables):
-        with mock.patch("ingest_takeon_data_wrangler.boto3.client") as mock_client:
+    with mock.patch.dict(which_lambda.os.environ,
+                         which_environment_variables):
+        with mock.patch(wrangler_boto3) as mock_client:
             mock_client_object = mock.Mock()
             mock_client.return_value = mock_client_object
 
@@ -458,49 +481,68 @@ def test_wrangler_success_passed(mock_s3_get):
             # This stops the Error caused by the replacement function from stopping
             # the test.
             with pytest.raises(exception_classes.LambdaFailure):
-                lambda_wrangler_function_data.lambda_handler(
-                    wrangler_runtime_variables_data, test_generic_library.context_object
+                which_lambda.lambda_handler(
+                    which_runtime_variables_wrangler, test_generic_library.context_object
                 )
 
-    with open("tests/fixtures/test_ingest_input.json", "r") as file_2:
+    with open(input_file, "r") as file_2:
         test_data_prepared = file_2.read()
     prepared_data = pd.DataFrame(json.loads(test_data_prepared))
 
-    with open("tests/fixtures/test_wrangler_to_method_input.json", "r") as file_3:
+    with open(wrangler_file, "r") as file_3:
         test_data_produced = file_3.read()
     produced_data = pd.DataFrame(json.loads(test_data_produced))
 
     # Compares the data.
     assert_frame_equal(produced_data, prepared_data)
 
-    with open("tests/fixtures/test_wrangler_to_method_runtime.json", "r") as file_4:
+    with open(runtime_file, "r") as file_4:
         test_dict_prepared = file_4.read()
     produced_dict = json.loads(test_dict_prepared)
 
     # Ensures data is not in the RuntimeVariables and then compares.
-    method_runtime_variables_data["RuntimeVariables"]["data"] = None
-    assert produced_dict == method_runtime_variables_data["RuntimeVariables"]
+    which_runtime_variables_method["RuntimeVariables"]["data"] = None
+    assert produced_dict == which_runtime_variables_method["RuntimeVariables"]
 
 
 @mock_s3
 @mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3')
 @mock.patch('ingest_takeon_data_wrangler.aws_functions.save_data',
             side_effect=test_generic_library.replacement_save_data)
-def test_wrangler_success_returned(mock_s3_put, mock_s3_get):
+@pytest.mark.parametrize(
+    "which_lambda,input_file,prepared_method_file,prepared_wrangler_file," +
+    "which_environment_variables,which_runtime_variables_wrangler,wrangler_boto3",
+    [
+        (lambda_wrangler_function_data, "tests/fixtures/test_ingest_input.json",
+         "tests/fixtures/test_method_prepared_output.json",
+         "tests/fixtures/test_wrangler_prepared_output.json",
+         wrangler_environment_variables, wrangler_runtime_variables_data,
+         "ingest_takeon_data_wrangler.boto3.client"),
+        (lambda_wrangler_function_bricks, "tests/fixtures/test_bricks_method_input.json",
+         "tests/fixtures/test_bricks_method_prepared_output.json",
+         "tests/fixtures/test_bricks_wrangler_prepared_output.json",
+         wrangler_environment_variables, wrangler_runtime_variables_bricks,
+         "ingest_brick_type_wrangler.boto3.client"),
+    ]
+)
+def test_wrangler_success_returned(mock_s3_put, mock_s3_get, which_lambda,
+                                   input_file, prepared_method_file,
+                                   prepared_wrangler_file, which_environment_variables,
+                                   which_runtime_variables_wrangler, wrangler_boto3):
     """
     Runs the wrangler function after the method invoke.
     :param None
     :return Test Pass/Fail
     """
-    with open("tests/fixtures/test_ingest_input.json", "r") as file:
+    with open(input_file, "r") as file:
         wrangler_input = json.dumps(file.read())
     mock_s3_get.return_value = wrangler_input
-    with open("tests/fixtures/test_method_prepared_output.json", "r") as file_2:
+    with open(prepared_method_file, "r") as file_2:
         test_data_out = file_2.read()
 
-    with mock.patch.dict(lambda_wrangler_function_data.os.environ,
-                         wrangler_environment_variables):
-        with mock.patch("ingest_takeon_data_wrangler.boto3.client") as mock_client:
+    with mock.patch.dict(which_lambda.os.environ,
+                         which_environment_variables):
+        with mock.patch(wrangler_boto3) as mock_client:
             mock_client_object = mock.Mock()
             mock_client.return_value = mock_client_object
 
@@ -511,15 +553,15 @@ def test_wrangler_success_returned(mock_s3_put, mock_s3_get):
                  "anomalies": []
                 })
 
-            output = lambda_wrangler_function_data.lambda_handler(
-                wrangler_runtime_variables_data, test_generic_library.context_object
+            output = which_lambda.lambda_handler(
+                which_runtime_variables_wrangler, test_generic_library.context_object
             )
 
-    with open("tests/fixtures/test_wrangler_prepared_output.json", "r") as file_3:
+    with open(prepared_wrangler_file, "r") as file_3:
         test_data_prepared = file_3.read()
     prepared_data = pd.DataFrame(json.loads(test_data_prepared))
     with open("tests/fixtures/" +
-              wrangler_runtime_variables_data["RuntimeVariables"]["out_file_name"],
+              which_runtime_variables_wrangler["RuntimeVariables"]["out_file_name"],
               "r") as file_4:
         test_data_produced = file_4.read()
     produced_data = pd.DataFrame(json.loads(test_data_produced))
