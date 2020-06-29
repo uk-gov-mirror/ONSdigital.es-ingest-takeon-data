@@ -24,6 +24,9 @@ class EnvironmentSchema(Schema):
 
 class IngestionParamsSchema(Schema):
 
+    class Meta:
+        unknown = EXCLUDE
+
     question_labels = fields.Dict(required=True)
     survey_codes = fields.Dict(required=True)
     statuses = fields.Dict(required=True)

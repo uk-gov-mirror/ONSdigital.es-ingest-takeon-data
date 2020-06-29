@@ -41,12 +41,13 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     in_file_name = fields.Str(required=True)
+    incoming_message_group_id = fields.Str(required=True)
     ingestion_parameters = fields.Nested(IngestionParamsSchema, required=True)
     location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
     outgoing_message_group_id = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    sqs_queue_url = fields.Str(required=True)
+    queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -83,25 +84,31 @@ def lambda_handler(event, context):
 
         # Runtime Variables
         in_file_name = runtime_variables["in_file_name"]
+        incoming_message_group_id = runtime_variables["incoming_message_group_id"]
         location = runtime_variables["location"]
         out_file_name = runtime_variables["out_file_name"]
         outgoing_message_group_id = runtime_variables["outgoing_message_group_id"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        sqs_queue_url = runtime_variables["sqs_queue_url"]
+        sqs_queue_url = runtime_variables["queue_url"]
         ingestion_parameters = runtime_variables["ingestion_parameters"]
 
         logger.info("Validated environment parameters.")
         # Set up client.
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
-        input_file = aws_functions.read_from_s3(results_bucket_name,
-                                                in_file_name)
+
+        data_df, receipt_handler = aws_functions.get_dataframe(sqs_queue_url,
+                                                               results_bucket_name,
+                                                               in_file_name,
+                                                               incoming_message_group_id,
+                                                               location)
 
         logger.info("Read from S3.")
+        data_json = data_df.to_json(orient="records")
 
         payload = {
 
             "RuntimeVariables": {
-                "data": json.loads(input_file),
+                "data": data_json,
                 "run_id": run_id,
                 "brick_questions": ingestion_parameters["brick_questions"],
                 "brick_types": ingestion_parameters["brick_types"],

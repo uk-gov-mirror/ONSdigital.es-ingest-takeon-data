@@ -57,10 +57,11 @@ wrangler_runtime_variables_data = {"RuntimeVariables": {
 wrangler_runtime_variables_bricks = {"RuntimeVariables": {
     "run_id": "bob",
     "in_file_name": "mock-file",
+    "incoming_message_group_id": "test_group",
     "out_file_name": "test_wrangler_prepared_output.json",
     "outgoing_message_group_id": "mock_out_group",
     "sns_topic_arn": "mock-topic-arn",
-    "sqs_queue_url": "mock-sqs-url",
+    "queue_url": "mock-sqs-url",
     "location": "Here",
     "ingestion_parameters": {
         "question_labels": {
