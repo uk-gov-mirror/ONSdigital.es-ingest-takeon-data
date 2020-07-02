@@ -77,12 +77,12 @@ def lambda_handler(event, context):
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
         logger.info("Validated parameters.")
 
-        # Environment Variables
+        # Environment Variables.
         checkpoint = environment_variables["checkpoint"]
         method_name = environment_variables["method_name"]
         results_bucket_name = environment_variables["results_bucket_name"]
 
-        # Runtime Variables
+        # Runtime Variables.
         in_file_name = runtime_variables["in_file_name"]
         incoming_message_group_id = runtime_variables["incoming_message_group_id"]
         location = runtime_variables["location"]
@@ -95,7 +95,6 @@ def lambda_handler(event, context):
         logger.info("Validated environment parameters.")
         # Set up client.
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
-
         data_df, receipt_handler = aws_functions.get_dataframe(sqs_queue_url,
                                                                results_bucket_name,
                                                                in_file_name,
