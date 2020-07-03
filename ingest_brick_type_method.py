@@ -14,7 +14,7 @@ class RuntimeSchema(Schema):
         logging.error(f"Error validating runtime params: {e}")
         raise ValueError(f"Error validating runtime params: {e}")
 
-    data = fields.Str(required=True)
+    data = fields.List(fields.Dict(required=True))
     brick_questions = fields.Dict(required=True)
     brick_types = fields.List(fields.Int(required=True))
     brick_type_column = fields.Str(required=True)
@@ -48,10 +48,10 @@ def lambda_handler(event, context):
         brick_questions = runtime_variables['brick_questions']
         brick_types = runtime_variables['brick_types']
         brick_type_column = runtime_variables['brick_type_column']
-        data_json = json.loads(runtime_variables['data'])
+        data = runtime_variables['data']
 
         # Apply changes to every responder and every brick type
-        for respondent in data_json:
+        for respondent in data:
             for this_type in brick_types:
 
                 # When it's not the brick type this responder supplied, fill with 0s.
@@ -75,7 +75,7 @@ def lambda_handler(event, context):
                     respondent.pop(this_question, None)
 
         logger.info("Successfully expanded brick data.")
-        final_output = {"data": json.dumps(data_json)}
+        final_output = {"data": json.dumps(data)}
 
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module,

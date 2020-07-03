@@ -107,7 +107,7 @@ def lambda_handler(event, context):
         payload = {
 
             "RuntimeVariables": {
-                "data": data_json,
+                "data": json.loads(data_json),
                 "run_id": run_id,
                 "brick_questions": ingestion_parameters["brick_questions"],
                 "brick_types": ingestion_parameters["brick_types"],
