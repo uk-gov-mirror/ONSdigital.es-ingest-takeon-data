@@ -101,7 +101,7 @@ def lambda_handler(event, context):
                                                                incoming_message_group_id,
                                                                location)
 
-        logger.info("Read from S3.")
+        logger.info("Retrieved data from S3.")
         data_json = data_df.to_json(orient="records")
 
         payload = {
