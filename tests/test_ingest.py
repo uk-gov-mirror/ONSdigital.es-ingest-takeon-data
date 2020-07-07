@@ -25,12 +25,9 @@ wrangler_runtime_variables_data = {"RuntimeVariables": {
     "run_id": "bob",
     "in_file_name": "test_ingest_input.json",
     "out_file_name": "test_wrangler_prepared_output.json",
-    "outgoing_message_group_id": "mock_out_group",
     "period": "201809",
     "periodicity": "03",
-    "queue_url": "mock-sqs-url",
     "sns_topic_arn": "mock-topic-arn",
-    "location": "Here",
     "ingestion_parameters": {
         "question_labels": {
             "0601": "Q601_asphalting_sand",
@@ -57,12 +54,8 @@ wrangler_runtime_variables_data = {"RuntimeVariables": {
 wrangler_runtime_variables_bricks = {"RuntimeVariables": {
     "run_id": "bob",
     "in_file_name": "test_bricks_method_input",
-    "incoming_message_group_id": "test_group",
     "out_file_name": "test_bricks_wrangler_prepared_output.json",
-    "outgoing_message_group_id": "mock_out_group",
     "sns_topic_arn": "mock-topic-arn",
-    "queue_url": "mock-sqs-url",
-    "location": "Here",
     "ingestion_parameters": {
         "question_labels": {
             '0001': 'opening_stock_commons',
@@ -305,8 +298,6 @@ def test_general_error(which_lambda, which_runtime_variables,
 
 
 @mock_s3
-@mock.patch('ingest_brick_type_wrangler.aws_functions.get_dataframe',
-            side_effect=test_generic_library.replacement_get_dataframe)
 @pytest.mark.parametrize(
      "which_method,which_wrangler,which_environment_variables,which_runtime_variables," +
      "which_file_list",
@@ -319,9 +310,8 @@ def test_general_error(which_lambda, which_runtime_variables,
          "test_bricks_method_input.json")
      ]
 )
-def test_incomplete_read_error(mock_s3_get, which_method, which_wrangler,
-                               which_environment_variables, which_runtime_variables,
-                               which_file_list):
+def test_incomplete_read_error(which_method, which_wrangler, which_environment_variables,
+                               which_runtime_variables, which_file_list):
     file_list = [which_file_list]
     test_generic_library.incomplete_read_error(which_method,
                                                which_runtime_variables,
@@ -350,8 +340,6 @@ def test_key_error(which_lambda, which_environment_variables,
 
 
 @mock_s3
-@mock.patch('ingest_brick_type_wrangler.aws_functions.get_dataframe',
-            side_effect=test_generic_library.replacement_get_dataframe)
 @pytest.mark.parametrize(
     "which_method,which_wrangler,which_environment_variables,which_runtime_variables," +
     "which_file_list",
@@ -364,9 +352,8 @@ def test_key_error(which_lambda, which_environment_variables,
          "test_bricks_method_input.json")
     ]
 )
-def test_method_error(mock_s3_get, which_method, which_wrangler,
-                      which_environment_variables, which_runtime_variables,
-                      which_file_list):
+def test_method_error(which_method, which_wrangler, which_environment_variables,
+                      which_runtime_variables, which_file_list):
     file_list = [which_file_list]
 
     test_generic_library.wrangler_method_error(which_method,
@@ -515,10 +502,8 @@ def test_wrangler_success_passed(mock_s3_get, which_lambda, input_file, wrangler
 
 
 @mock_s3
-@mock.patch('ingest_brick_type_wrangler.aws_functions.get_dataframe',
-            side_effect=test_generic_library.replacement_get_dataframe)
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.save_data',
-            side_effect=test_generic_library.replacement_save_data)
+@mock.patch('ingest_takeon_data_wrangler.aws_functions.save_to_s3',
+            side_effect=test_generic_library.replacement_save_to_s3)
 @pytest.mark.parametrize(
     "which_lambda,input_file,prepared_method_file,prepared_wrangler_file," +
     "which_environment_variables,which_runtime_variables_wrangler,wrangler_boto3",
@@ -535,7 +520,7 @@ def test_wrangler_success_passed(mock_s3_get, which_lambda, input_file, wrangler
          "ingest_brick_type_wrangler.boto3.client"),
     ]
 )
-def test_wrangler_success_returned(mock_s3_put, mock_s3_get, which_lambda,
+def test_wrangler_success_returned(mock_s3_put, which_lambda,
                                    input_file, prepared_method_file,
                                    prepared_wrangler_file, which_environment_variables,
                                    which_runtime_variables_wrangler, wrangler_boto3):

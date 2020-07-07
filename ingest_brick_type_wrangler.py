@@ -41,13 +41,9 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     in_file_name = fields.Str(required=True)
-    incoming_message_group_id = fields.Str(required=True)
     ingestion_parameters = fields.Nested(IngestionParamsSchema, required=True)
-    location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
-    outgoing_message_group_id = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -84,22 +80,14 @@ def lambda_handler(event, context):
 
         # Runtime Variables.
         in_file_name = runtime_variables["in_file_name"]
-        incoming_message_group_id = runtime_variables["incoming_message_group_id"]
-        location = runtime_variables["location"]
         out_file_name = runtime_variables["out_file_name"]
-        outgoing_message_group_id = runtime_variables["outgoing_message_group_id"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        sqs_queue_url = runtime_variables["queue_url"]
         ingestion_parameters = runtime_variables["ingestion_parameters"]
 
         logger.info("Validated environment parameters.")
         # Set up client.
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
-        data_df, receipt_handler = aws_functions.get_dataframe(sqs_queue_url,
-                                                               results_bucket_name,
-                                                               in_file_name,
-                                                               incoming_message_group_id,
-                                                               location)
+        data_df = aws_functions.read_dataframe_from_s3(results_bucket_name, in_file_name)
 
         logger.info("Retrieved data from S3.")
         data_json = data_df.to_json(orient="records")
@@ -126,9 +114,8 @@ def lambda_handler(event, context):
         if not json_response["success"]:
             raise exception_classes.MethodFailure(json_response["error"])
 
-        aws_functions.save_data(results_bucket_name, out_file_name,
-                                json_response["data"], sqs_queue_url,
-                                outgoing_message_group_id, location)
+        aws_functions.save_to_s3(results_bucket_name, out_file_name,
+                                 json_response["data"])
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 

@@ -43,12 +43,9 @@ class RuntimeSchema(Schema):
 
     in_file_name = fields.Str(required=True)
     ingestion_parameters = fields.Nested(IngestionParamsSchema, required=True)
-    location = fields.Str(required=True)
     out_file_name = fields.Str(required=True)
-    outgoing_message_group_id = fields.Str(required=True)
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
-    queue_url = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
 
 
@@ -86,13 +83,10 @@ def lambda_handler(event, context):
 
         # Runtime Variables.
         in_file_name = runtime_variables["in_file_name"]
-        location = runtime_variables["location"]
         out_file_name = runtime_variables["out_file_name"]
-        outgoing_message_group_id = runtime_variables["outgoing_message_group_id"]
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        sqs_queue_url = runtime_variables["queue_url"]
         ingestion_parameters = runtime_variables["ingestion_parameters"]
 
         logger.info("Retrieved configuration variables.")
@@ -128,9 +122,8 @@ def lambda_handler(event, context):
         if not json_response["success"]:
             raise exception_classes.MethodFailure(json_response["error"])
 
-        aws_functions.save_data(results_bucket_name, out_file_name,
-                                json_response["data"], sqs_queue_url,
-                                outgoing_message_group_id, location)
+        aws_functions.save_to_s3(results_bucket_name, out_file_name,
+                                 json_response["data"])
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
