@@ -23,7 +23,7 @@ wrangler_environment_variables = {
 
 wrangler_runtime_variables_data = {"RuntimeVariables": {
     "run_id": "bob",
-    "in_file_name": "mock-file",
+    "in_file_name": "test_ingest_input.json",
     "out_file_name": "test_wrangler_prepared_output.json",
     "outgoing_message_group_id": "mock_out_group",
     "period": "201809",
@@ -56,11 +56,12 @@ wrangler_runtime_variables_data = {"RuntimeVariables": {
 
 wrangler_runtime_variables_bricks = {"RuntimeVariables": {
     "run_id": "bob",
-    "in_file_name": "mock-file",
-    "out_file_name": "test_wrangler_prepared_output.json",
+    "in_file_name": "test_bricks_method_input",
+    "incoming_message_group_id": "test_group",
+    "out_file_name": "test_bricks_wrangler_prepared_output.json",
     "outgoing_message_group_id": "mock_out_group",
     "sns_topic_arn": "mock-topic-arn",
-    "sqs_queue_url": "mock-sqs-url",
+    "queue_url": "mock-sqs-url",
     "location": "Here",
     "ingestion_parameters": {
         "question_labels": {
@@ -304,20 +305,24 @@ def test_general_error(which_lambda, which_runtime_variables,
 
 
 @mock_s3
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3',
-            return_value=json.dumps({"test": "test"}))
+@mock.patch('ingest_brick_type_wrangler.aws_functions.get_dataframe',
+            side_effect=test_generic_library.replacement_get_dataframe)
 @pytest.mark.parametrize(
-     "which_method,which_wrangler,which_environment_variables,which_runtime_variables",
+     "which_method,which_wrangler,which_environment_variables,which_runtime_variables," +
+     "which_file_list",
      [
         (lambda_wrangler_function_data, "ingest_takeon_data_wrangler",
-         wrangler_environment_variables, wrangler_runtime_variables_data),
+         wrangler_environment_variables, wrangler_runtime_variables_data,
+         "test_ingest_input.json"),
         (lambda_wrangler_function_bricks, "ingest_brick_type_wrangler",
-         wrangler_environment_variables, wrangler_runtime_variables_bricks)
+         wrangler_environment_variables, wrangler_runtime_variables_bricks,
+         "test_bricks_method_input.json")
      ]
 )
 def test_incomplete_read_error(mock_s3_get, which_method, which_wrangler,
-                               which_environment_variables, which_runtime_variables):
-    file_list = ["test_ingest_input.json"]
+                               which_environment_variables, which_runtime_variables,
+                               which_file_list):
+    file_list = [which_file_list]
     test_generic_library.incomplete_read_error(which_method,
                                                which_runtime_variables,
                                                which_environment_variables,
@@ -345,20 +350,24 @@ def test_key_error(which_lambda, which_environment_variables,
 
 
 @mock_s3
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3',
-            return_value=json.dumps({"test": "test"}))
+@mock.patch('ingest_brick_type_wrangler.aws_functions.get_dataframe',
+            side_effect=test_generic_library.replacement_get_dataframe)
 @pytest.mark.parametrize(
-    "which_method,which_wrangler,which_environment_variables,which_runtime_variables",
+    "which_method,which_wrangler,which_environment_variables,which_runtime_variables," +
+    "which_file_list",
     [
         (lambda_wrangler_function_data, "ingest_takeon_data_wrangler",
-         wrangler_environment_variables, wrangler_runtime_variables_data),
+         wrangler_environment_variables, wrangler_runtime_variables_data,
+         "test_ingest_input.json"),
         (lambda_wrangler_function_bricks, "ingest_brick_type_wrangler",
-         wrangler_environment_variables, wrangler_runtime_variables_bricks)
+         wrangler_environment_variables, wrangler_runtime_variables_bricks,
+         "test_bricks_method_input.json")
     ]
 )
 def test_method_error(mock_s3_get, which_method, which_wrangler,
-                      which_environment_variables, which_runtime_variables):
-    file_list = ["test_ingest_input.json"]
+                      which_environment_variables, which_runtime_variables,
+                      which_file_list):
+    file_list = [which_file_list]
 
     test_generic_library.wrangler_method_error(which_method,
                                                which_runtime_variables,
@@ -506,19 +515,20 @@ def test_wrangler_success_passed(mock_s3_get, which_lambda, input_file, wrangler
 
 
 @mock_s3
-@mock.patch('ingest_takeon_data_wrangler.aws_functions.read_from_s3')
+@mock.patch('ingest_brick_type_wrangler.aws_functions.get_dataframe',
+            side_effect=test_generic_library.replacement_get_dataframe)
 @mock.patch('ingest_takeon_data_wrangler.aws_functions.save_data',
             side_effect=test_generic_library.replacement_save_data)
 @pytest.mark.parametrize(
     "which_lambda,input_file,prepared_method_file,prepared_wrangler_file," +
     "which_environment_variables,which_runtime_variables_wrangler,wrangler_boto3",
     [
-        (lambda_wrangler_function_data, "tests/fixtures/test_ingest_input.json",
+        (lambda_wrangler_function_data, "test_ingest_input.json",
          "tests/fixtures/test_method_prepared_output.json",
          "tests/fixtures/test_wrangler_prepared_output.json",
          wrangler_environment_variables, wrangler_runtime_variables_data,
          "ingest_takeon_data_wrangler.boto3.client"),
-        (lambda_wrangler_function_bricks, "tests/fixtures/test_bricks_method_input.json",
+        (lambda_wrangler_function_bricks, "test_bricks_method_input.json",
          "tests/fixtures/test_bricks_method_prepared_output.json",
          "tests/fixtures/test_bricks_wrangler_prepared_output.json",
          wrangler_environment_variables, wrangler_runtime_variables_bricks,
@@ -534,9 +544,13 @@ def test_wrangler_success_returned(mock_s3_put, mock_s3_get, which_lambda,
     :param None
     :return Test Pass/Fail
     """
-    with open(input_file, "r") as file:
-        wrangler_input = json.dumps(file.read())
-    mock_s3_get.return_value = wrangler_input
+    bucket_name = wrangler_environment_variables["bucket_name"]
+    client = test_generic_library.create_bucket(bucket_name)
+
+    file_list = [input_file]
+
+    test_generic_library.upload_files(client, bucket_name, file_list)
+
     with open(prepared_method_file, "r") as file_2:
         test_data_out = file_2.read()
 

@@ -48,10 +48,10 @@ def lambda_handler(event, context):
         brick_questions = runtime_variables['brick_questions']
         brick_types = runtime_variables['brick_types']
         brick_type_column = runtime_variables['brick_type_column']
-        data_json = runtime_variables['data']
+        data = runtime_variables['data']
 
         # Apply changes to every responder and every brick type
-        for respondent in data_json:
+        for respondent in data:
             for this_type in brick_types:
 
                 # When it's not the brick type this responder supplied, fill with 0s.
@@ -65,12 +65,17 @@ def lambda_handler(event, context):
                         respondent[brick_questions[str(this_type)][this_question]] =\
                              respondent[this_question]
 
-            # Remove the 'shared' questions.
-            for this_question in brick_questions[str(respondent[brick_type_column])]:
-                respondent.pop(this_question, None)
+            # Remove the 'shared' questions for respondents
+            if (str(respondent[brick_type_column]) != "0"):
+                for this_question in brick_questions[str(respondent[brick_type_column])]:
+                    respondent.pop(this_question, None)
+            # Remove the 'shared' qustion for non-respondents
+            else:
+                for this_question in next(iter(brick_questions)):
+                    respondent.pop(this_question, None)
 
         logger.info("Successfully expanded brick data.")
-        final_output = {"data": json.dumps(data_json)}
+        final_output = {"data": json.dumps(data)}
 
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module,
