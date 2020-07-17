@@ -38,7 +38,6 @@ functions:
     tags:
       app: results
     environment:
-      checkpoint: 0
       method_name: es-ingest-takeon-data-method
       results_bucket_name: spp-results-${self:custom.environment}
       takeon_bucket_name: takeon.validationdb.export.bucket
@@ -73,7 +72,6 @@ functions:
     tags:
       app: results
     environment:
-      checkpoint: 0
       method_name: es-ingest-brick-type-method
       results_bucket_name: spp-results-${self:custom.environment}
 

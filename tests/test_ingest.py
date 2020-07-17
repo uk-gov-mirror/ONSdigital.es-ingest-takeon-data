@@ -17,8 +17,7 @@ wrangler_environment_variables = {
                 "results_bucket_name": "test_bucket",
                 # bucket_name included for test library to use:
                 "bucket_name": "test_bucket",
-                "method_name": "mock-function",
-                "checkpoint": "0"
+                "method_name": "mock-function"
             }
 
 wrangler_runtime_variables_data = {"RuntimeVariables": {
