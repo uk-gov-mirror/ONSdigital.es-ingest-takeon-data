@@ -54,7 +54,7 @@ def lambda_handler(event, context):
     in the results pipeline, and send it to the Results S3 bucket for further processing.
     :param event: Event object
     :param context: Context object
-    :return: JSON String - {"success": boolean, "checkpoint"/"error": integer/string}
+    :return: JSON String - {"success": boolean, "error": string}
     """
     current_module = "Results Ingest - Takeon Data - Wrangler"
     error_message = ""
