@@ -16,7 +16,6 @@ class EnvironmentSchema(Schema):
         logging.error(f"Error validating environment params: {e}")
         raise ValueError(f"Error validating environment params: {e}")
 
-    checkpoint = fields.Str(required=True)
     method_name = fields.Str(required=True)
     results_bucket_name = fields.Str(required=True)
     takeon_bucket_name = fields.Str(required=True)
@@ -76,7 +75,6 @@ def lambda_handler(event, context):
         logger.info("Validated parameters.")
 
         # Environment Variables.
-        checkpoint = environment_variables["checkpoint"]
         takeon_bucket_name = environment_variables["takeon_bucket_name"]
         method_name = environment_variables["method_name"]
         results_bucket_name = environment_variables["results_bucket_name"]
@@ -127,7 +125,7 @@ def lambda_handler(event, context):
 
         logger.info("Data ready for Results pipeline. Written to S3.")
 
-        aws_functions.send_sns_message(checkpoint, sns_topic_arn, "Ingest.")
+        aws_functions.send_sns_message(sns_topic_arn, "Ingest.")
 
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module,
@@ -138,4 +136,4 @@ def lambda_handler(event, context):
             raise exception_classes.LambdaFailure(error_message)
 
     logger.info("Successfully completed module: " + current_module)
-    return {"success": True, "checkpoint": checkpoint}
+    return {"success": True}
