@@ -66,7 +66,7 @@ def lambda_handler(event, context):
                              respondent[this_question]
 
             # Remove the 'shared' questions for respondents
-            if (str(respondent[brick_type_column]) in brick_types):
+            if (str(respondent[brick_type_column]) in str(brick_types)):
                 for this_question in brick_questions[str(respondent[brick_type_column])]:
                     respondent.pop(this_question, None)
             # Remove the 'shared' qustion for non-respondents
