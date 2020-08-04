@@ -58,8 +58,7 @@ def lambda_handler(event, context):
     """
     current_module = "Results Ingest - Takeon Data - Wrangler"
     error_message = ""
-    logger = logging.getLogger("Results Ingest - Takeon Data")
-    logger.setLevel(10)
+    logger = general_functions.get_logger()
 
     # Define run_id outside of try block.
     run_id = 0
