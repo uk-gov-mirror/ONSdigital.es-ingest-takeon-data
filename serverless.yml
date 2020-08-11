@@ -4,7 +4,7 @@ provider:
   name: aws
   deploymentBucket:
     name: spp-results-${self:custom.environment}-serverless
-  role: arn:aws:iam::#{AWS::AccountId}:role/spp_results_takeon_role
+  role: arn:aws:iam::#{AWS::AccountId}:role/spp-results_takeon_role
   vpc:
     securityGroupIds:
       - ${file(../json_outputs/security_groups_output.json):SecurityGroups.0.GroupId}
