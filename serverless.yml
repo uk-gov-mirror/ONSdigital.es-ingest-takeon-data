@@ -40,7 +40,6 @@ functions:
     environment:
       method_name: es-ingest-takeon-data-method
       results_bucket_name: spp-results-${self:custom.environment}
-      takeon_bucket_name: takeon.validationdb.export.bucket
 
   deploy-data-method:
     name: es-ingest-takeon-data-method

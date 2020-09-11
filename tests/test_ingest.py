@@ -13,7 +13,6 @@ import ingest_takeon_data_method as lambda_method_function_data
 import ingest_takeon_data_wrangler as lambda_wrangler_function_data
 
 wrangler_environment_variables = {
-                "takeon_bucket_name": "test_bucket",
                 "results_bucket_name": "test_bucket",
                 # bucket_name included for test library to use:
                 "bucket_name": "test_bucket",
@@ -22,7 +21,7 @@ wrangler_environment_variables = {
 
 wrangler_runtime_variables_data = {"RuntimeVariables": {
     "run_id": "bob",
-    "in_file_name": "test_ingest_input.json",
+    "snapshot_s3_uri": "s3://test_bucket/test_ingest_input.json",
     "out_file_name": "test_wrangler_prepared_output.json",
     "period": "201809",
     "periodicity": "03",
