@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from urllib.parse import urlparse
 
 import boto3
 from es_aws_functions import aws_functions, exception_classes, general_functions
@@ -18,7 +19,6 @@ class EnvironmentSchema(Schema):
 
     method_name = fields.Str(required=True)
     results_bucket_name = fields.Str(required=True)
-    takeon_bucket_name = fields.Str(required=True)
 
 
 class IngestionParamsSchema(Schema):
@@ -40,11 +40,11 @@ class RuntimeSchema(Schema):
         logging.error(f"Error validating runtime params: {e}")
         raise ValueError(f"Error validating runtime params: {e}")
 
-    in_file_name = fields.Str(required=True)
     ingestion_parameters = fields.Nested(IngestionParamsSchema, required=True)
     out_file_name = fields.Str(required=True)
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
+    snapshot_s3_uri = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
 
 
@@ -74,12 +74,11 @@ def lambda_handler(event, context):
         logger.info("Validated parameters.")
 
         # Environment Variables.
-        takeon_bucket_name = environment_variables["takeon_bucket_name"]
         method_name = environment_variables["method_name"]
         results_bucket_name = environment_variables["results_bucket_name"]
 
         # Runtime Variables.
-        in_file_name = runtime_variables["in_file_name"]
+        snapshot_s3_uri = runtime_variables["snapshot_s3_uri"]
         out_file_name = runtime_variables["out_file_name"]
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
@@ -87,13 +86,22 @@ def lambda_handler(event, context):
         ingestion_parameters = runtime_variables["ingestion_parameters"]
 
         logger.info("Retrieved configuration variables.")
+
         # Set up client.
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
-        input_file = aws_functions.read_from_s3(takeon_bucket_name,
-                                                in_file_name,
+
+        # Wrangle the S3 URI into bucket + name.
+        snapshot_parsed_uri = urlparse(snapshot_s3_uri)
+        snapshot_bucket = snapshot_parsed_uri.netloc
+        snapshot_file = snapshot_parsed_uri.path
+        snapshot_file = snapshot_file[1:]  # Remove the leading '/'
+
+        # Get the file from S3
+        input_file = aws_functions.read_from_s3(snapshot_bucket,
+                                                snapshot_file,
                                                 file_extension="")
 
-        logger.info("Read from S3")
+        logger.info(f"Read Snapshot {snapshot_file} from S3 bucket {snapshot_bucket}")
 
         payload = {
 
