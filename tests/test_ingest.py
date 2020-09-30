@@ -20,6 +20,8 @@ wrangler_environment_variables = {
             }
 
 wrangler_runtime_variables_data = {"RuntimeVariables": {
+    "bpm_queue_url": "fake_queue_url",
+    "total_steps": "6",
     "run_id": "bob",
     "snapshot_s3_uri": "s3://test_bucket/test_ingest_input.json",
     "out_file_name": "test_wrangler_prepared_output.json",
@@ -50,6 +52,8 @@ wrangler_runtime_variables_data = {"RuntimeVariables": {
 }}
 
 wrangler_runtime_variables_bricks = {"RuntimeVariables": {
+    "bpm_queue_url": "fake_bpm_queue",
+    "total_steps": "6",
     "run_id": "bob",
     "in_file_name": "test_bricks_method_input",
     "out_file_name": "test_bricks_wrangler_prepared_output.json",
@@ -131,13 +135,14 @@ wrangler_runtime_variables_bricks = {"RuntimeVariables": {
                 'closing_stock_facings': "sandlime_closing_stock_facings",
                 'closing_stock_engineering': "sandlime_closing_stock_engineering"
             }
-        }
+        },
     }
 }}
 
 method_runtime_variables_data = {
     "RuntimeVariables": {
         "data": {},
+        "bpm_queue_url": "fake_queue_url",
         "period": "201809",
         "periodicity": "03",
         "run_id": "bob",
@@ -166,6 +171,7 @@ method_runtime_variables_data = {
 method_runtime_variables_bricks = {
     "RuntimeVariables": {
         "data": {},
+        "bpm_queue_url": "fake_queue_url",
         "run_id": "bob",
         "question_labels": {
             '0001': 'opening_stock_commons',
@@ -263,7 +269,7 @@ method_runtime_variables_bricks = {
          "ClientError", test_generic_library.wrangler_assert)
     ])
 @mock.patch('ingest_takeon_data_wrangler.aws_functions.send_bpm_status')
-def test_client_error(which_lambda, which_runtime_variables,
+def test_client_error(send_bpm_status, which_lambda, which_runtime_variables,
                       which_environment_variables, which_data,
                       expected_message, assertion):
     test_generic_library.client_error(which_lambda, which_runtime_variables,

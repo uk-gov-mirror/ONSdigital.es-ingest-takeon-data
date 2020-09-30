@@ -1,5 +1,6 @@
 {
     "data": null,
+    "bpm_queue_url": "fake_queue_url",
     "run_id": "bob",
     "question_labels": {
         "0001": "opening_stock_commons",
