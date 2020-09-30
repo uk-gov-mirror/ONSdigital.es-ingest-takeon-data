@@ -262,6 +262,7 @@ method_runtime_variables_bricks = {
          wrangler_environment_variables, None,
          "ClientError", test_generic_library.wrangler_assert)
     ])
+@mock.patch('ingest_takeon_data_wrangler.aws_functions.send_bpm_status')
 def test_client_error(which_lambda, which_runtime_variables,
                       which_environment_variables, which_data,
                       expected_message, assertion):
