@@ -14,6 +14,7 @@ class RuntimeSchema(Schema):
         logging.error(f"Error validating runtime params: {e}")
         raise ValueError(f"Error validating runtime params: {e}")
 
+    bpm_queue_url = fields.Str(required=True)
     data = fields.List(fields.Dict(required=True))
     brick_questions = fields.Dict(required=True)
     brick_types = fields.List(fields.Int(required=True))
@@ -33,6 +34,9 @@ def lambda_handler(event, context):
     error_message = ""
     logger = general_functions.get_logger()
     # Define run_id outside of try block
+
+    bpm_queue_url = None
+
     run_id = 0
     try:
         logger.info("Retrieving data from take on file...")
@@ -44,6 +48,7 @@ def lambda_handler(event, context):
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
         logger.info("Validated parameters.")
 
+        bpm_queue_url = runtime_variables["bpm_queue_url"]
         brick_questions = runtime_variables['brick_questions']
         brick_types = runtime_variables['brick_types']
         brick_type_column = runtime_variables['brick_type_column']
@@ -78,7 +83,7 @@ def lambda_handler(event, context):
 
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context)
+                                                           run_id, context=context, bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)
