@@ -60,6 +60,7 @@ def lambda_handler(event, context):
     error_message = ""
     logger = general_functions.get_logger()
 
+    # Set status message variables in case it fails before assignment.
     bpm_queue_url = None
     current_step_num = "1"
 
