@@ -82,8 +82,9 @@ def lambda_handler(event, context):
         final_output = {"data": json.dumps(data)}
 
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context=context, bpm_queue_url=bpm_queue_url)
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)

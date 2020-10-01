@@ -3,7 +3,6 @@
         "allSurveys": {
             "nodes": [
                 {
-                    "bpm_queue_url": "fake_queue_url",
                     "contributorsBySurvey": {
                         "nodes": [
                             {

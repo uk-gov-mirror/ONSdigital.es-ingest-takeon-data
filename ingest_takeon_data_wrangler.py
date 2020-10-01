@@ -49,6 +49,7 @@ class RuntimeSchema(Schema):
     sns_topic_arn = fields.Str(required=True)
     total_steps = fields.Str(required=True)
 
+
 def lambda_handler(event, context):
     """
     This method will ingest data from Take On S3 bucket, transform it so that it fits

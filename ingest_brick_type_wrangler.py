@@ -93,7 +93,7 @@ def lambda_handler(event, context):
         # Send in progress status to BPM.
         status = "IN PROGRESS"
         aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id,
-                                  current_step_num, total_steps)
+                                      current_step_num, total_steps)
         # Set up client.
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
         data_df = aws_functions.read_dataframe_from_s3(results_bucket_name, in_file_name)
@@ -132,8 +132,9 @@ def lambda_handler(event, context):
         aws_functions.send_sns_message(sns_topic_arn, "Ingest.")
 
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context=context, bpm_queue_url=bpm_queue_url)
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)

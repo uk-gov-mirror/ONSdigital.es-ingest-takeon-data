@@ -294,7 +294,8 @@ def test_client_error(send_bpm_status, which_lambda, which_runtime_variables,
          wrangler_environment_variables, "ingest_brick_type_wrangler.EnvironmentSchema",
          "'Exception'", test_generic_library.wrangler_assert)
     ])
-def test_general_error(which_lambda, which_runtime_variables,
+@mock.patch('ingest_takeon_data_wrangler.aws_functions.send_bpm_status')
+def test_general_error(send_bpm_status, which_lambda, which_runtime_variables,
                        which_environment_variables, mockable_function,
                        expected_message, assertion):
     test_generic_library.general_error(which_lambda, which_runtime_variables,
