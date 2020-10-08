@@ -149,8 +149,7 @@ def lambda_handler(event, context):
         aws_functions.send_sns_message(sns_topic_arn, "Ingest.")
 
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id,
+        error_message = general_functions.handle_exception(e, current_module, run_id,
                                                            context=context,
                                                            bpm_queue_url=bpm_queue_url)
     finally:
