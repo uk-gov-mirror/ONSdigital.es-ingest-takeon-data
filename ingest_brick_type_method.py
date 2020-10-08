@@ -33,10 +33,9 @@ def lambda_handler(event, context):
     current_module = "Results Ingest - Brick Type - Method"
     error_message = ""
     logger = general_functions.get_logger()
-    # Define run_id outside of try block
-    run_id = 0
 
-    # Set status message variables in case it fails before assignment.
+    # Variables required for error handling.
+    run_id = 0
     bpm_queue_url = None
 
     try:
