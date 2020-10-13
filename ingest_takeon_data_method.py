@@ -14,6 +14,7 @@ class RuntimeSchema(Schema):
         logging.error(f"Error validating runtime params: {e}")
         raise ValueError(f"Error validating runtime params: {e}")
 
+    bpm_queue_url = fields.Str(required=True)
     data = fields.Dict(required=True)
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
@@ -33,8 +34,11 @@ def lambda_handler(event, context):
     current_module = "Results Ingest - Takeon Data - Method"
     error_message = ""
     logger = general_functions.get_logger()
-    # Define run_id outside of try block.
+
+    # Variables required for error handling.
     run_id = 0
+    bpm_queue_url = None
+
     try:
         logger.info("Retrieving data from take on file.")
         # Retrieve run_id before input validation
@@ -45,6 +49,7 @@ def lambda_handler(event, context):
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
         logger.info("Validated parameters.")
 
+        bpm_queue_url = runtime_variables["bpm_queue_url"]
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
         previous_period = general_functions.calculate_adjacent_periods(period,
@@ -99,8 +104,9 @@ def lambda_handler(event, context):
         final_output = {"data": json.dumps(output_json)}
 
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context)
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)

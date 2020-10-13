@@ -40,12 +40,14 @@ class RuntimeSchema(Schema):
         logging.error(f"Error validating runtime params: {e}")
         raise ValueError(f"Error validating runtime params: {e}")
 
+    bpm_queue_url = fields.Str(required=True)
     ingestion_parameters = fields.Nested(IngestionParamsSchema, required=True)
     out_file_name = fields.Str(required=True)
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
     snapshot_s3_uri = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
+    total_steps = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -60,8 +62,10 @@ def lambda_handler(event, context):
     error_message = ""
     logger = general_functions.get_logger()
 
-    # Define run_id outside of try block.
+    # Variables required for error handling.
+    bpm_queue_url = None
     run_id = 0
+
     try:
         logger.info("Starting " + current_module)
         # Retrieve run_id before input validation
@@ -78,14 +82,22 @@ def lambda_handler(event, context):
         results_bucket_name = environment_variables["results_bucket_name"]
 
         # Runtime Variables.
+        bpm_queue_url = runtime_variables["bpm_queue_url"]
         snapshot_s3_uri = runtime_variables["snapshot_s3_uri"]
         out_file_name = runtime_variables["out_file_name"]
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
         ingestion_parameters = runtime_variables["ingestion_parameters"]
+        total_steps = runtime_variables["total_steps"]
 
         logger.info("Retrieved configuration variables.")
+
+        # Send in progress status to BPM.
+        current_step_num = "1"
+        status = "IN PROGRESS"
+        aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id,
+                                      current_step_num, total_steps)
 
         # Set up client.
         lambda_client = boto3.client("lambda", region_name="eu-west-2")
@@ -106,6 +118,7 @@ def lambda_handler(event, context):
         payload = {
 
             "RuntimeVariables": {
+                "bpm_queue_url": bpm_queue_url,
                 "data": json.loads(input_file),
                 "period": period,
                 "periodicity": periodicity,
@@ -135,12 +148,19 @@ def lambda_handler(event, context):
         aws_functions.send_sns_message(sns_topic_arn, "Ingest.")
 
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module,
-                                                           run_id, context)
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)
             raise exception_classes.LambdaFailure(error_message)
 
     logger.info("Successfully completed module: " + current_module)
+
+    # Send end status to BPM.
+    status = "DONE"
+    aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id,
+                                  current_step_num, total_steps)
+
     return {"success": True}
