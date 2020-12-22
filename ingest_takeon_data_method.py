@@ -15,14 +15,14 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     bpm_queue_url = fields.Str(required=True)
-    environment = fields.Str(required=True)
     data = fields.Dict(required=True)
+    environment = fields.Str(required=True)
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
     question_labels = fields.Dict(required=True)
-    survey_codes = fields.Dict(required=True)
     statuses = fields.Dict(required=True)
     survey = fields.Str(required=True)
+    survey_codes = fields.Dict(required=True)
 
 
 def lambda_handler(event, context):
@@ -53,9 +53,9 @@ def lambda_handler(event, context):
         previous_period = general_functions.calculate_adjacent_periods(period,
                                                                        periodicity)
         question_labels = runtime_variables["question_labels"]
-        survey_codes = runtime_variables["survey_codes"]
         statuses = runtime_variables["statuses"]
         survey = runtime_variables["survey"]
+        survey_codes = runtime_variables["survey_codes"]
         input_json = runtime_variables["data"]
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module,

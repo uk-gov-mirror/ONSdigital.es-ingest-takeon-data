@@ -80,15 +80,15 @@ def lambda_handler(event, context):
 
         # Runtime Variables.
         bpm_queue_url = runtime_variables["bpm_queue_url"]
-        snapshot_s3_uri = runtime_variables["snapshot_s3_uri"]
+        environment = runtime_variables["environment"]
+        ingestion_parameters = runtime_variables["ingestion_parameters"]
         out_file_name = runtime_variables["out_file_name"]
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
+        snapshot_s3_uri = runtime_variables["snapshot_s3_uri"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        ingestion_parameters = runtime_variables["ingestion_parameters"]
-        total_steps = runtime_variables["total_steps"]
-        environment = runtime_variables["environment"]
         survey = runtime_variables["survey"]
+        total_steps = runtime_variables["total_steps"]
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module, run_id,
                                                            context=context,
@@ -136,11 +136,11 @@ def lambda_handler(event, context):
                 "environment": environment,
                 "period": period,
                 "periodicity": periodicity,
-                "run_id": run_id,
                 "question_labels": ingestion_parameters["question_labels"],
-                "survey_codes": ingestion_parameters["survey_codes"],
+                "run_id": run_id,
                 "statuses": ingestion_parameters["statuses"],
-                "survey": survey
+                "survey": survey,
+                "survey_codes": ingestion_parameters["survey_codes"]
             },
         }
 

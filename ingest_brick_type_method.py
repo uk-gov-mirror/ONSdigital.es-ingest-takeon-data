@@ -15,10 +15,10 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     bpm_queue_url = fields.Str(required=True)
-    data = fields.List(fields.Dict(required=True))
     brick_questions = fields.Dict(required=True)
     brick_types = fields.List(fields.Int(required=True))
     brick_type_column = fields.Str(required=True)
+    data = fields.List(fields.Dict(required=True))
     environment = fields.Str(required=True)
     survey = fields.Str(required=True)
 

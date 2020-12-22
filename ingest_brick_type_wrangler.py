@@ -118,12 +118,12 @@ def lambda_handler(event, context):
 
             "RuntimeVariables": {
                 "bpm_queue_url": bpm_queue_url,
-                "data": json.loads(data_json),
-                "environment": environment,
-                "run_id": run_id,
                 "brick_questions": ingestion_parameters["brick_questions"],
                 "brick_types": ingestion_parameters["brick_types"],
                 "brick_type_column": ingestion_parameters["brick_type_column"],
+                "data": json.loads(data_json),
+                "environment": environment,
+                "run_id": run_id,
                 "survey": survey
             },
         }
