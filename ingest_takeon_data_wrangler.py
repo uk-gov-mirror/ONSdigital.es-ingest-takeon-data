@@ -41,12 +41,14 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     bpm_queue_url = fields.Str(required=True)
+    environment = fields.Str(required=True)
     ingestion_parameters = fields.Nested(IngestionParamsSchema, required=True)
     out_file_name = fields.Str(required=True)
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
     snapshot_s3_uri = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
+    survey = fields.Str(required=True)
     total_steps = fields.Str(required=True)
 
 
@@ -60,14 +62,10 @@ def lambda_handler(event, context):
     """
     current_module = "Results Ingest - Takeon Data - Wrangler"
     error_message = ""
-    logger = general_functions.get_logger()
-
     # Variables required for error handling.
     bpm_queue_url = None
     run_id = 0
-
     try:
-        logger.info("Starting " + current_module)
         # Retrieve run_id before input validation
         # Because it is used in exception handling.
         run_id = event["RuntimeVariables"]["run_id"]
@@ -75,7 +73,6 @@ def lambda_handler(event, context):
         # Load variables.
         environment_variables = EnvironmentSchema().load(os.environ)
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
-        logger.info("Validated parameters.")
 
         # Environment Variables.
         method_name = environment_variables["method_name"]
@@ -83,16 +80,32 @@ def lambda_handler(event, context):
 
         # Runtime Variables.
         bpm_queue_url = runtime_variables["bpm_queue_url"]
-        snapshot_s3_uri = runtime_variables["snapshot_s3_uri"]
+        environment = runtime_variables["environment"]
+        ingestion_parameters = runtime_variables["ingestion_parameters"]
         out_file_name = runtime_variables["out_file_name"]
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
+        snapshot_s3_uri = runtime_variables["snapshot_s3_uri"]
         sns_topic_arn = runtime_variables["sns_topic_arn"]
-        ingestion_parameters = runtime_variables["ingestion_parameters"]
+        survey = runtime_variables["survey"]
         total_steps = runtime_variables["total_steps"]
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
+        raise exception_classes.LambdaFailure(error_message)
 
-        logger.info("Retrieved configuration variables.")
+    try:
+        logger = general_functions.get_logger(survey, current_module, environment,
+                                              run_id)
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module, run_id,
+                                                           context=context,
+                                                           bpm_queue_url=bpm_queue_url)
+        raise exception_classes.LambdaFailure(error_message)
 
+    try:
+        logger.info("Started - retrieved configuration variables.")
         # Send in progress status to BPM.
         current_step_num = "1"
         status = "IN PROGRESS"
@@ -120,17 +133,19 @@ def lambda_handler(event, context):
             "RuntimeVariables": {
                 "bpm_queue_url": bpm_queue_url,
                 "data": json.loads(input_file),
+                "environment": environment,
                 "period": period,
                 "periodicity": periodicity,
-                "run_id": run_id,
                 "question_labels": ingestion_parameters["question_labels"],
-                "survey_codes": ingestion_parameters["survey_codes"],
-                "statuses": ingestion_parameters["statuses"]
+                "run_id": run_id,
+                "statuses": ingestion_parameters["statuses"],
+                "survey": survey,
+                "survey_codes": ingestion_parameters["survey_codes"]
             },
         }
 
         method_return = lambda_client.invoke(
-         FunctionName=method_name, Payload=json.dumps(payload)
+            FunctionName=method_name, Payload=json.dumps(payload)
         )
         logger.info("Successfully invoked method.")
 
@@ -146,7 +161,6 @@ def lambda_handler(event, context):
         logger.info("Data ready for Results pipeline. Written to S3.")
 
         aws_functions.send_sns_message(sns_topic_arn, "Ingest.")
-
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module, run_id,
                                                            context=context,
@@ -156,7 +170,7 @@ def lambda_handler(event, context):
             logger.error(error_message)
             raise exception_classes.LambdaFailure(error_message)
 
-    logger.info("Successfully completed module: " + current_module)
+    logger.info("Successfully completed module.")
 
     # Send end status to BPM.
     status = "DONE"

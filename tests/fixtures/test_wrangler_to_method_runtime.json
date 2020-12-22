@@ -1,6 +1,7 @@
 {
     "bpm_queue_url": "fake_queue_url",
     "data": null,
+    "environment": "sandbox",
     "period": "201809",
     "periodicity": "03",
     "question_labels": {
@@ -19,6 +20,7 @@
         "Form Sent Out": 1,
         "Overridden": 2
     },
+    "survey": "BMI_SG",
     "survey_codes": {
         "0066": "066",
         "0076": "076"
