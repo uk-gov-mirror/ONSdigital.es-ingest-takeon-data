@@ -21,6 +21,8 @@ wrangler_environment_variables = {
 
 wrangler_runtime_variables_data = {"RuntimeVariables": {
     "bpm_queue_url": "fake_queue_url",
+    "environment": "sandbox",
+    "survey": "BMI_SG",
     "total_steps": "6",
     "run_id": "bob",
     "snapshot_s3_uri": "s3://test_bucket/test_ingest_input.json",
@@ -53,6 +55,8 @@ wrangler_runtime_variables_data = {"RuntimeVariables": {
 
 wrangler_runtime_variables_bricks = {"RuntimeVariables": {
     "bpm_queue_url": "fake_bpm_queue",
+    "environment": "sandbox",
+    "survey": "BMI_SG",
     "total_steps": "6",
     "run_id": "bob",
     "in_file_name": "test_bricks_method_input",
@@ -143,6 +147,8 @@ method_runtime_variables_data = {
     "RuntimeVariables": {
         "data": {},
         "bpm_queue_url": "fake_queue_url",
+        "environment": "sandbox",
+        "survey": "BMI_SG",
         "period": "201809",
         "periodicity": "03",
         "run_id": "bob",
@@ -172,6 +178,8 @@ method_runtime_variables_bricks = {
     "RuntimeVariables": {
         "data": {},
         "bpm_queue_url": "fake_queue_url",
+        "environment": "sandbox",
+        "survey": "BMI_SG",
         "run_id": "bob",
         "question_labels": {
             '0001': 'opening_stock_commons',

@@ -19,6 +19,8 @@ class RuntimeSchema(Schema):
     brick_questions = fields.Dict(required=True)
     brick_types = fields.List(fields.Int(required=True))
     brick_type_column = fields.Str(required=True)
+    environment = fields.Str(required=True)
+    survey = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -32,28 +34,40 @@ def lambda_handler(event, context):
     """
     current_module = "Results Ingest - Brick Type - Method"
     error_message = ""
-    logger = general_functions.get_logger()
-
     # Variables required for error handling.
     run_id = 0
     bpm_queue_url = None
-
     try:
-        logger.info("Retrieving data from take on file...")
         # Retrieve run_id before input validation
         # Because it is used in exception handling
         run_id = event['RuntimeVariables']['run_id']
-
         # Extract runtime variables.
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
-        logger.info("Validated parameters.")
 
         bpm_queue_url = runtime_variables["bpm_queue_url"]
         brick_questions = runtime_variables['brick_questions']
         brick_types = runtime_variables['brick_types']
         brick_type_column = runtime_variables['brick_type_column']
         data = runtime_variables['data']
+        environment = runtime_variables["environment"]
+        survey = runtime_variables["survey"]
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context,
+                                                           bpm_queue_url=bpm_queue_url)
+        return {"success": False, "error": error_message}
 
+    try:
+        logger = general_functions.get_logger(survey, current_module, environment,
+                                              run_id)
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context,
+                                                           bpm_queue_url=bpm_queue_url)
+        return {"success": False, "error": error_message}
+
+    try:
+        logger.info("Started - retrieved wrangler configuration variables.")
         # Apply changes to every responder and every brick type
         for respondent in data:
             for this_type in brick_types:
@@ -66,30 +80,29 @@ def lambda_handler(event, context):
                 # When it's the same as responder supplied, use their data.
                 else:
                     for this_question in brick_questions[str(this_type)]:
-                        respondent[brick_questions[str(this_type)][this_question]] =\
-                             respondent[this_question]
+                        respondent[brick_questions[str(this_type)][this_question]] = \
+                            respondent[this_question]
 
             # Remove the 'shared' questions for respondents
-            if (str(respondent[brick_type_column]) in str(brick_types)):
+            if str(respondent[brick_type_column]) in str(brick_types):
                 for this_question in brick_questions[str(respondent[brick_type_column])]:
                     respondent.pop(this_question, None)
-            # Remove the 'shared' qustion for non-respondents
+            # Remove the 'shared' question for non-respondents
             else:
                 for this_question in next(iter(brick_questions)):
                     respondent.pop(this_question, None)
 
         logger.info("Successfully expanded brick data.")
         final_output = {"data": json.dumps(data)}
-
     except Exception as e:
-        error_message = general_functions.handle_exception(e, current_module, run_id,
-                                                           context=context,
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context,
                                                            bpm_queue_url=bpm_queue_url)
     finally:
         if (len(error_message)) > 0:
             logger.error(error_message)
             return {"success": False, "error": error_message}
 
-    logger.info("Successfully completed module: " + current_module)
+    logger.info("Successfully completed module.")
     final_output['success'] = True
     return final_output

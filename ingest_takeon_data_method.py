@@ -15,12 +15,14 @@ class RuntimeSchema(Schema):
         raise ValueError(f"Error validating runtime params: {e}")
 
     bpm_queue_url = fields.Str(required=True)
+    environment = fields.Str(required=True)
     data = fields.Dict(required=True)
     period = fields.Str(required=True)
     periodicity = fields.Str(required=True)
     question_labels = fields.Dict(required=True)
     survey_codes = fields.Dict(required=True)
     statuses = fields.Dict(required=True)
+    survey = fields.Str(required=True)
 
 
 def lambda_handler(event, context):
@@ -33,23 +35,19 @@ def lambda_handler(event, context):
     """
     current_module = "Results Ingest - Takeon Data - Method"
     error_message = ""
-    logger = general_functions.get_logger()
-
     # Variables required for error handling.
     run_id = 0
     bpm_queue_url = None
-
     try:
-        logger.info("Retrieving data from take on file.")
         # Retrieve run_id before input validation
         # Because it is used in exception handling.
         run_id = event["RuntimeVariables"]["run_id"]
 
         # Extract runtime variables.
         runtime_variables = RuntimeSchema().load(event["RuntimeVariables"])
-        logger.info("Validated parameters.")
 
         bpm_queue_url = runtime_variables["bpm_queue_url"]
+        environment = runtime_variables["environment"]
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
         previous_period = general_functions.calculate_adjacent_periods(period,
@@ -57,12 +55,26 @@ def lambda_handler(event, context):
         question_labels = runtime_variables["question_labels"]
         survey_codes = runtime_variables["survey_codes"]
         statuses = runtime_variables["statuses"]
+        survey = runtime_variables["survey"]
         input_json = runtime_variables["data"]
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context,
+                                                           bpm_queue_url=bpm_queue_url)
+        return {"success": False, "error": error_message}
 
-        logger.info("Retrieved configuration variables.")
+    try:
+        logger = general_functions.get_logger(survey, current_module, environment,
+                                              run_id)
+    except Exception as e:
+        error_message = general_functions.handle_exception(e, current_module,
+                                                           run_id, context=context,
+                                                           bpm_queue_url=bpm_queue_url)
+        return {"success": False, "error": error_message}
 
+    try:
+        logger.info("Started - retrieved wrangler configuration variables.")
         output_json = []
-
         for survey in input_json["data"]["allSurveys"]["nodes"]:
             if survey["survey"] in survey_codes:
                 for contributor in survey["contributorsBySurvey"]["nodes"]:
@@ -84,9 +96,9 @@ def lambda_handler(event, context):
 
                         # Where contributors provided an aswer, use it instead.
                         for question in contributor["responsesByReferenceAndPeriodAndSurvey"]["nodes"]:  # noqa: E501
-                            if question["questioncode"] in question_labels.keys() and\
-                               question["response"].isnumeric():
-                                out_contrib[question_labels[question["questioncode"]]]\
+                            if question["questioncode"] in question_labels.keys() and \
+                                    question["response"].isnumeric():
+                                out_contrib[question_labels[question["questioncode"]]] \
                                     = int(question["response"])
 
                         # Convert the response statuses to types,
@@ -102,7 +114,6 @@ def lambda_handler(event, context):
 
         logger.info("Successfully extracted data from take on.")
         final_output = {"data": json.dumps(output_json)}
-
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module, run_id,
                                                            context=context,
@@ -112,6 +123,6 @@ def lambda_handler(event, context):
             logger.error(error_message)
             return {"success": False, "error": error_message}
 
-    logger.info("Successfully completed module: " + current_module)
+    logger.info("Successfully completed module.")
     final_output["success"] = True
     return final_output
