@@ -16,8 +16,8 @@ class RuntimeSchema(Schema):
 
     bpm_queue_url = fields.Str(required=True)
     brick_questions = fields.Dict(required=True)
-    brick_types = fields.List(fields.Int(required=True))
     brick_type_column = fields.Str(required=True)
+    brick_types = fields.List(fields.Int(required=True))
     data = fields.List(fields.Dict(required=True))
     environment = fields.Str(required=True)
     survey = fields.Str(required=True)
@@ -46,8 +46,8 @@ def lambda_handler(event, context):
 
         bpm_queue_url = runtime_variables["bpm_queue_url"]
         brick_questions = runtime_variables['brick_questions']
-        brick_types = runtime_variables['brick_types']
         brick_type_column = runtime_variables['brick_type_column']
+        brick_types = runtime_variables['brick_types']
         data = runtime_variables['data']
         environment = runtime_variables["environment"]
         survey = runtime_variables["survey"]

@@ -48,6 +48,7 @@ def lambda_handler(event, context):
 
         bpm_queue_url = runtime_variables["bpm_queue_url"]
         environment = runtime_variables["environment"]
+        input_json = runtime_variables["data"]
         period = runtime_variables["period"]
         periodicity = runtime_variables["periodicity"]
         previous_period = general_functions.calculate_adjacent_periods(period,
@@ -56,7 +57,6 @@ def lambda_handler(event, context):
         statuses = runtime_variables["statuses"]
         survey = runtime_variables["survey"]
         survey_codes = runtime_variables["survey_codes"]
-        input_json = runtime_variables["data"]
     except Exception as e:
         error_message = general_functions.handle_exception(e, current_module,
                                                            run_id, context=context,

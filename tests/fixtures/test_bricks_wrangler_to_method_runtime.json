@@ -1,36 +1,5 @@
 {
-    "data": null,
     "bpm_queue_url": "fake_queue_url",
-    "environment": "sandbox",
-    "survey": "BMI_SG",
-    "run_id": "bob",
-    "question_labels": {
-        "0001": "opening_stock_commons",
-        "0011": "opening_stock_facings",
-        "0021": "opening_stock_engineering",
-        "0002": "produced_commons",
-        "0012": "produced_facings",
-        "0022": "produced_engineering",
-        "0003": "deliveries_commons",
-        "0013": "deliveries_facings",
-        "0023": "deliveries_engineering",
-        "0004": "closing_stock_commons",
-        "0014": "closing_stock_facings",
-        "0024": "closing_stock_engineering",
-        "0501": "total_opening_stock",
-        "0502": "total_produced",
-        "0503": "total_deliveries",
-        "0504": "total_closing",
-        "8000": "brick_type"
-    },
-    "survey_codes": {
-        "0074": "047"
-    },
-    "statuses": {
-        "Form Sent Out": 1,
-        "Clear": 2,
-        "Overridden": 2
-    },
     "brick_types": [
         2,
         3,
@@ -80,5 +49,36 @@
             "closing_stock_facings": "sandlime_closing_stock_facings",
             "closing_stock_engineering": "sandlime_closing_stock_engineering"
         }
+    },
+    "data": null,
+    "environment": "sandbox",
+    "question_labels": {
+        "0001": "opening_stock_commons",
+        "0011": "opening_stock_facings",
+        "0021": "opening_stock_engineering",
+        "0002": "produced_commons",
+        "0012": "produced_facings",
+        "0022": "produced_engineering",
+        "0003": "deliveries_commons",
+        "0013": "deliveries_facings",
+        "0023": "deliveries_engineering",
+        "0004": "closing_stock_commons",
+        "0014": "closing_stock_facings",
+        "0024": "closing_stock_engineering",
+        "0501": "total_opening_stock",
+        "0502": "total_produced",
+        "0503": "total_deliveries",
+        "0504": "total_closing",
+        "8000": "brick_type"
+    },
+    "run_id": "bob",
+    "statuses": {
+        "Form Sent Out": 1,
+        "Clear": 2,
+        "Overridden": 2
+    },
+    "survey": "BMI_SG",
+    "survey_codes": {
+        "0074": "047"
     }
 }

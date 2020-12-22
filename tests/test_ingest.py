@@ -22,14 +22,6 @@ wrangler_environment_variables = {
 wrangler_runtime_variables_data = {"RuntimeVariables": {
     "bpm_queue_url": "fake_queue_url",
     "environment": "sandbox",
-    "survey": "BMI_SG",
-    "total_steps": "6",
-    "run_id": "bob",
-    "snapshot_s3_uri": "s3://test_bucket/test_ingest_input.json",
-    "out_file_name": "test_wrangler_prepared_output.json",
-    "period": "201809",
-    "periodicity": "03",
-    "sns_topic_arn": "mock-topic-arn",
     "ingestion_parameters": {
         "question_labels": {
             "0601": "Q601_asphalting_sand",
@@ -50,18 +42,20 @@ wrangler_runtime_variables_data = {"RuntimeVariables": {
             "Clear": 2,
             "Overridden": 2
         }
-    }
+    },
+    "out_file_name": "test_wrangler_prepared_output.json",
+    "period": "201809",
+    "periodicity": "03",
+    "run_id": "bob",
+    "snapshot_s3_uri": "s3://test_bucket/test_ingest_input.json",
+    "sns_topic_arn": "mock-topic-arn",
+    "survey": "BMI_SG",
+    "total_steps": "6"
 }}
 
 wrangler_runtime_variables_bricks = {"RuntimeVariables": {
     "bpm_queue_url": "fake_bpm_queue",
     "environment": "sandbox",
-    "survey": "BMI_SG",
-    "total_steps": "6",
-    "run_id": "bob",
-    "in_file_name": "test_bricks_method_input",
-    "out_file_name": "test_bricks_wrangler_prepared_output.json",
-    "sns_topic_arn": "mock-topic-arn",
     "ingestion_parameters": {
         "question_labels": {
             '0001': 'opening_stock_commons',
@@ -140,18 +134,22 @@ wrangler_runtime_variables_bricks = {"RuntimeVariables": {
                 'closing_stock_engineering': "sandlime_closing_stock_engineering"
             }
         },
-    }
+    },
+    "in_file_name": "test_bricks_method_input",
+    "out_file_name": "test_bricks_wrangler_prepared_output.json",
+    "run_id": "bob",
+    "sns_topic_arn": "mock-topic-arn",
+    "survey": "BMI_SG",
+    "total_steps": "6"
 }}
 
 method_runtime_variables_data = {
     "RuntimeVariables": {
-        "data": {},
         "bpm_queue_url": "fake_queue_url",
+        "data": {},
         "environment": "sandbox",
-        "survey": "BMI_SG",
         "period": "201809",
         "periodicity": "03",
-        "run_id": "bob",
         "question_labels": {
             "0601": "Q601_asphalting_sand",
             "0602": "Q602_building_soft_sand",
@@ -162,52 +160,23 @@ method_runtime_variables_data = {
             "0607": "Q607_constructional_fill",
             "0608": "Q608_total"
         },
-        "survey_codes": {
-            "0066": "066",
-            "0076": "076"
-        },
+        "run_id": "bob",
         "statuses": {
             "Form Sent Out": 1,
             "Clear": 2,
             "Overridden": 2
+        },
+        "survey": "BMI_SG",
+        "survey_codes": {
+            "0066": "066",
+            "0076": "076"
         }
     }
 }
 
 method_runtime_variables_bricks = {
     "RuntimeVariables": {
-        "data": {},
         "bpm_queue_url": "fake_queue_url",
-        "environment": "sandbox",
-        "survey": "BMI_SG",
-        "run_id": "bob",
-        "question_labels": {
-            '0001': 'opening_stock_commons',
-            '0011': 'opening_stock_facings',
-            '0021': 'opening_stock_engineering',
-            '0002': 'produced_commons',
-            '0012': 'produced_facings',
-            '0022': 'produced_engineering',
-            '0003': 'deliveries_commons',
-            '0013': 'deliveries_facings',
-            '0023': 'deliveries_engineering',
-            '0004': 'closing_stock_commons',
-            '0014': 'closing_stock_facings',
-            '0024': 'closing_stock_engineering',
-            '0501': 'total_opening_stock',
-            '0502': 'total_produced',
-            '0503': 'total_deliveries',
-            '0504': 'total_closing',
-            '8000': 'brick_type'
-        },
-        "survey_codes": {
-            "0074": "047"
-        },
-        "statuses": {
-            "Form Sent Out": 1,
-            "Clear": 2,
-            "Overridden": 2
-        },
         "brick_types": [
             2,
             3,
@@ -257,6 +226,37 @@ method_runtime_variables_bricks = {
                 'closing_stock_facings': "sandlime_closing_stock_facings",
                 'closing_stock_engineering': "sandlime_closing_stock_engineering"
             }
+        },
+        "data": {},
+        "environment": "sandbox",
+        "question_labels": {
+            '0001': 'opening_stock_commons',
+            '0011': 'opening_stock_facings',
+            '0021': 'opening_stock_engineering',
+            '0002': 'produced_commons',
+            '0012': 'produced_facings',
+            '0022': 'produced_engineering',
+            '0003': 'deliveries_commons',
+            '0013': 'deliveries_facings',
+            '0023': 'deliveries_engineering',
+            '0004': 'closing_stock_commons',
+            '0014': 'closing_stock_facings',
+            '0024': 'closing_stock_engineering',
+            '0501': 'total_opening_stock',
+            '0502': 'total_produced',
+            '0503': 'total_deliveries',
+            '0504': 'total_closing',
+            '8000': 'brick_type'
+        },
+        "run_id": "bob",
+        "statuses": {
+            "Form Sent Out": 1,
+            "Clear": 2,
+            "Overridden": 2
+        },
+        "survey": "BMI_SG",
+        "survey_codes": {
+            "0074": "047"
         }
     }
 }
