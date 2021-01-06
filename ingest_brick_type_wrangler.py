@@ -46,7 +46,7 @@ class RuntimeSchema(Schema):
     out_file_name = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     survey = fields.Str(required=True)
-    total_steps = fields.Str(required=True)
+    total_steps = fields.Int(required=True)
 
 
 def lambda_handler(event, context):
