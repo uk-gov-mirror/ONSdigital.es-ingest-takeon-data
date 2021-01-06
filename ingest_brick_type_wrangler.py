@@ -104,7 +104,7 @@ def lambda_handler(event, context):
         logger.info("Started - retrieved configuration variables.")
         # Send in progress status to BPM.
         status = "IN PROGRESS"
-        current_step_num = "1"
+        current_step_num = 1
         aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id,
                                       current_step_num, total_steps)
         # Set up client.

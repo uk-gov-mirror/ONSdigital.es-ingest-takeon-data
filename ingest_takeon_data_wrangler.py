@@ -49,7 +49,7 @@ class RuntimeSchema(Schema):
     snapshot_s3_uri = fields.Str(required=True)
     sns_topic_arn = fields.Str(required=True)
     survey = fields.Str(required=True)
-    total_steps = fields.Str(required=True)
+    total_steps = fields.Int(required=True)
 
 
 def lambda_handler(event, context):
@@ -107,7 +107,7 @@ def lambda_handler(event, context):
     try:
         logger.info("Started - retrieved configuration variables.")
         # Send in progress status to BPM.
-        current_step_num = "1"
+        current_step_num = 1
         status = "IN PROGRESS"
         aws_functions.send_bpm_status(bpm_queue_url, current_module, status, run_id,
                                       current_step_num, total_steps)
