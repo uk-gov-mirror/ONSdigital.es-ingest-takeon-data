@@ -50,7 +50,7 @@ wrangler_runtime_variables_data = {"RuntimeVariables": {
     "snapshot_s3_uri": "s3://test_bucket/test_ingest_input.json",
     "sns_topic_arn": "mock-topic-arn",
     "survey": "BMI_SG",
-    "total_steps": "6"
+    "total_steps": 6
 }}
 
 wrangler_runtime_variables_bricks = {"RuntimeVariables": {
@@ -140,7 +140,7 @@ wrangler_runtime_variables_bricks = {"RuntimeVariables": {
     "run_id": "bob",
     "sns_topic_arn": "mock-topic-arn",
     "survey": "BMI_SG",
-    "total_steps": "6"
+    "total_steps": 6
 }}
 
 method_runtime_variables_data = {
